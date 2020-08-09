@@ -1,14 +1,12 @@
-package twistlock
+package sdk
 
 import (
 	"time"
 )
 
 type Cnaf struct {
-	ID      string  `json:"_id"`
-	Rules   []Rules `json:"rules"`
-	MinPort int     `json:"minPort"`
-	MaxPort int     `json:"maxPort"`
+	ID    string  `json:"_id"`
+	Rules []Rules `json:"rules"`
 }
 
 type Rules struct {
@@ -18,7 +16,7 @@ type Rules struct {
 	PreviousName         string          `json:"previousName"`
 	Effect               string          `json:"effect"`
 	Blacklist            Blacklist       `json:"blacklist"`
-	WhitelistSubnets     []interface{}   `json:"whitelistSubnets"`
+	WhitelistSubnets     []string        `json:"whitelistSubnets"`
 	Libinject            Libinject       `json:"libinject"`
 	Headers              Headers         `json:"headers"`
 	Resources            Resources       `json:"resources"`
@@ -37,8 +35,8 @@ type Rules struct {
 }
 
 type Blacklist struct {
-	AdvancedProtection bool          `json:"advancedProtection"`
-	Subnets            []interface{} `json:"subnets"`
+	AdvancedProtection bool     `json:"advancedProtection"`
+	Subnets            []string `json:"subnets"`
 }
 
 type Libinject struct {
@@ -47,7 +45,13 @@ type Libinject struct {
 }
 
 type Headers struct {
-	Specs []interface{} `json:"specs"`
+	Specs []Specs `json:"specs"`
+}
+
+type Specs struct {
+	Allow  bool     `json:"allow"`
+	Name   string   `json:"name"`
+	Values []string `json:"values"`
 }
 
 type Resources struct {
@@ -72,9 +76,9 @@ type IntelGathering struct {
 }
 
 type MaliciousUpload struct {
-	Enabled           bool          `json:"enabled"`
-	AllowedFileTypes  []interface{} `json:"allowedFileTypes"`
-	AllowedExtensions []interface{} `json:"allowedExtensions"`
+	Enabled           bool     `json:"enabled"`
+	AllowedFileTypes  []string `json:"allowedFileTypes"`
+	AllowedExtensions []string `json:"allowedExtensions"`
 }
 
 type PortMaps struct {

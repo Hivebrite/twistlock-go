@@ -1,4 +1,4 @@
-package twistlock
+package sdk
 
 import (
 	"bytes"

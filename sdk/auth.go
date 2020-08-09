@@ -1,4 +1,4 @@
-package twistlock
+package sdk
 
 type TokenResponse struct {
 	Token string `json:"token"`

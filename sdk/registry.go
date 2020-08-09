@@ -1,6 +1,6 @@
-package twistlock
+package sdk
 
-type Specifications struct {
+type RegistrySpecifications struct {
 	RegistrySettings []RegistrySetting `json:"specifications"`
 }
 type RegistrySetting struct {
@@ -14,13 +14,13 @@ type RegistrySetting struct {
 	Scanners   int    `json:"scanners"`
 }
 
-func (c *Client) GetRegistries() (*Specifications, error) {
+func (c *Client) GetRegistries() (*RegistrySpecifications, error) {
 	req, err := c.newRequest("GET", "settings/registry", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	registries := Specifications{}
+	registries := RegistrySpecifications{}
 	_, err = c.do(req, &registries)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (c *Client) GetRegistries() (*Specifications, error) {
 	return &registries, nil
 }
 
-func (c *Client) SetRegistries(spec *Specifications) error {
+func (c *Client) SetRegistries(spec *RegistrySpecifications) error {
 	req, err := c.newRequest("PUT", "settings/registry", spec)
 	if err != nil {
 		return err
