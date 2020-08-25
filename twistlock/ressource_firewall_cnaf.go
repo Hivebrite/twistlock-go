@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+// TODO(This resource create update correctly on prismacloud but at each run the change is trigger, we will investigate later on that)
 func resourceFirewallCnaf() *schema.Resource {
 	return &schema.Resource{
 		Create: createFirewallCnaf,
@@ -19,6 +20,18 @@ func resourceFirewallCnaf() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"max_port": {
+				Optional:    true,
+				Type:        schema.TypeInt,
+				Description: "",
+				Default:     31000,
+			},
+			"min_port": {
+				Optional:    true,
+				Type:        schema.TypeInt,
+				Description: "",
+				Default:     30000,
+			},
 			"rules": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -341,17 +354,19 @@ func resourceFirewallCnaf() *schema.Resource {
 
 func parseFirewallCnaf(d *schema.ResourceData) *sdk.Cnaf {
 	cnafSpec := sdk.Cnaf{}
+	cnafSpec.MaxPort = d.Get("max_port").(int)
+	cnafSpec.MinPort = d.Get("min_port").(int)
 	rules := d.Get("rules").(*schema.Set).List()
 
 	for _, i := range rules {
 		rule := i.(map[string]interface{})
-		blackList := rule["black_list"].(map[string]interface{})
-		libInject := rule["libinject"].(map[string]interface{})
-		resources := rule["resources"].(map[string]interface{})
-		certificate := rule["certificate"].(map[string]interface{})
-		headers := rule["headers"].(map[string]interface{})
-		intelGathering := rule["intel_gathering"].(map[string]interface{})
-		maliciousUpload := rule["malicious_upload"].(map[string]interface{})
+		blackList := rule["black_list"].(*schema.Set).List()[0].(map[string]interface{})
+		libInject := rule["libinject"].(*schema.Set).List()[0].(map[string]interface{})
+		resources := rule["resources"].(*schema.Set).List()[0].(map[string]interface{})
+		intelGathering := rule["intel_gathering"].(*schema.Set).List()[0].(map[string]interface{})
+		headers := fetchOptionalMapFRomSetParam(rule, "headers")
+		certificate := fetchOptionalMapFRomSetParam(rule, "certificate")
+		maliciousUpload := fetchOptionalMapFRomSetParam(rule, "malicious_upload")
 
 		var headersSpecs []sdk.Specs
 		for _, headerSpec := range cast.ToSlice(headers["spec"]) {
@@ -365,7 +380,7 @@ func parseFirewallCnaf(d *schema.ResourceData) *sdk.Cnaf {
 		}
 
 		var portMaps []sdk.PortMaps
-		for _, portMap := range cast.ToSlice(headers["port_maps"]) {
+		for _, portMap := range rule["port_maps"].(*schema.Set).List() {
 			p := portMap.(map[string]interface{})
 			portMaps = append(portMaps,
 				sdk.PortMaps{
@@ -401,7 +416,13 @@ func parseFirewallCnaf(d *schema.ResourceData) *sdk.Cnaf {
 					AccountIDs: cast.ToStringSlice(resources["account_ids"]),
 				},
 				Certificate: sdk.Certificate{
-					Encrypted: certificate["encrypted"].(string),
+					Encrypted: func() string {
+						if certificate["encrypted"] == nil {
+							return ""
+						}
+
+						return certificate["encrypted"].(string)
+					}(),
 				},
 				CsrfEnabled:         rule["csrf_enabled"].(bool),
 				ClickjackingEnabled: rule["click_jacking_enabled"].(bool),
@@ -416,7 +437,13 @@ func parseFirewallCnaf(d *schema.ResourceData) *sdk.Cnaf {
 				ShellshockEnabled:   rule["shellshock_enabled"].(bool),
 				MalformedReqEnabled: rule["malformed_req_enabled"].(bool),
 				MaliciousUpload: sdk.MaliciousUpload{
-					Enabled:           maliciousUpload[""].(bool),
+					Enabled: func() bool {
+						if maliciousUpload["enabled"] == nil {
+							return false
+						}
+
+						return maliciousUpload["enabled"].(bool)
+					}(),
 					AllowedFileTypes:  cast.ToStringSlice(maliciousUpload["allowed_file_types"]),
 					AllowedExtensions: cast.ToStringSlice(maliciousUpload["allowed_extensions"]),
 				},
@@ -430,7 +457,7 @@ func parseFirewallCnaf(d *schema.ResourceData) *sdk.Cnaf {
 	return &cnafSpec
 }
 
-func saveFirewallCnaf(d *schema.ResourceData, cnaf *sdk.Cnaf) {
+func saveFirewallCnaf(d *schema.ResourceData, cnaf *sdk.Cnaf) error {
 	cnafRules := make([]interface{}, 0, len(cnaf.Rules))
 
 	for _, i := range cnaf.Rules {
@@ -458,45 +485,59 @@ func saveFirewallCnaf(d *schema.ResourceData, cnaf *sdk.Cnaf) {
 			map[string]interface{}{
 				"name":   i.Name,
 				"effect": i.Effect,
-				"black_list": map[string]interface{}{
-					"advanced_protection": i.Blacklist.AdvancedProtection,
-					"subnets":             i.Blacklist.Subnets,
+				"black_list": []map[string]interface{}{
+					{
+						"advanced_protection": i.Blacklist.AdvancedProtection,
+						"subnets":             i.Blacklist.Subnets,
+					},
 				},
 				"white_list_subnets": i.WhitelistSubnets,
-				"libinject": map[string]interface{}{
-					"sqli_enabled": i.Libinject.SqliEnabled,
-					"xss_enabled":  i.Libinject.XSSEnabled,
+				"libinject": []map[string]interface{}{
+					{
+						"sqli_enabled": i.Libinject.SqliEnabled,
+						"xss_enabled":  i.Libinject.XSSEnabled,
+					},
 				},
-				"headers": map[string]interface{}{
-					"spec": headerSpecs,
+				"headers": []map[string]interface{}{
+					{
+						"spec": headerSpecs,
+					},
 				},
-				"resources": map[string]interface{}{
-					"hosts":       i.Resources.Hosts,
-					"images":      i.Resources.Images,
-					"labels":      i.Resources.Labels,
-					"containers":  i.Resources.Containers,
-					"namespaces":  i.Resources.Namespaces,
-					"account_ids": i.Resources.AccountIDs,
+				"resources": []map[string]interface{}{
+					{
+						"hosts":       i.Resources.Hosts,
+						"images":      i.Resources.Images,
+						"labels":      i.Resources.Labels,
+						"containers":  i.Resources.Containers,
+						"namespaces":  i.Resources.Namespaces,
+						"account_ids": i.Resources.AccountIDs,
+					},
 				},
-				"certificate": map[string]interface{}{
-					"encrypted": i.Certificate.Encrypted,
+				"certificate": []map[string]interface{}{
+					{
+						"encrypted": i.Certificate.Encrypted,
+					},
 				},
 				"csrf_enabled":          i.CsrfEnabled,
 				"click_jacking_enabled": i.ClickjackingEnabled,
 				"attack_tools_enabled":  i.AttackToolsEnabled,
-				"intel_gathering": map[string]interface{}{
-					"bruteforce_enabled":          i.IntelGathering.BruteforceEnabled,
-					"dir_traversal_enabled":       i.IntelGathering.DirTraversalEnabled,
-					"track_errors_enabled":        i.IntelGathering.TrackErrorsEnabled,
-					"info_leakage_enabled":        i.IntelGathering.InfoLeakageEnabled,
-					"remove_fingerprints_enabled": i.IntelGathering.RemoveFingerprintsEnabled,
+				"intel_gathering": []map[string]interface{}{
+					{
+						"bruteforce_enabled":          i.IntelGathering.BruteforceEnabled,
+						"dir_traversal_enabled":       i.IntelGathering.DirTraversalEnabled,
+						"track_errors_enabled":        i.IntelGathering.TrackErrorsEnabled,
+						"info_leakage_enabled":        i.IntelGathering.InfoLeakageEnabled,
+						"remove_fingerprints_enabled": i.IntelGathering.RemoveFingerprintsEnabled,
+					},
 				},
 				"shellshock_enabled":    i.ShellshockEnabled,
 				"malformed_req_enabled": i.MalformedReqEnabled,
-				"malicious_upload": map[string]interface{}{
-					"enabled":            i.MaliciousUpload.Enabled,
-					"allowed_file_types": i.MaliciousUpload.AllowedFileTypes,
-					"allowed_extensions": i.MaliciousUpload.AllowedExtensions,
+				"malicious_upload": []map[string]interface{}{
+					{
+						"enabled":            i.MaliciousUpload.Enabled,
+						"allowed_file_types": i.MaliciousUpload.AllowedFileTypes,
+						"allowed_extensions": i.MaliciousUpload.AllowedExtensions,
+					},
 				},
 				"port_maps":              portMappings,
 				"cmdi_enabled":           i.CmdiEnabled,
@@ -505,8 +546,27 @@ func saveFirewallCnaf(d *schema.ResourceData, cnaf *sdk.Cnaf) {
 			})
 	}
 
+	d.SetId("cnaf")
+
 	err := d.Set("rules", cnafRules)
-	log.Printf("[WARN] Error rules caused by: %s", err)
+	if err != nil {
+		log.Printf("[ERROR] rules caused by: %s", err)
+		return err
+	}
+
+	errMaxPort := d.Set("max_port", cnaf.MaxPort)
+	if errMaxPort != nil {
+		log.Printf("[ERROR] max_port caused by: %s", errMaxPort)
+		return errMaxPort
+	}
+
+	errMinPort := d.Set("min_port", cnaf.MinPort)
+	if errMinPort != nil {
+		log.Printf("[ERROR] min_port caused by: %s", errMinPort)
+		return errMinPort
+	}
+
+	return nil
 }
 
 func createFirewallCnaf(d *schema.ResourceData, meta interface{}) error {
@@ -526,8 +586,7 @@ func readFirewallCnaf(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	saveFirewallCnaf(d, cnafRules)
-	return nil
+	return saveFirewallCnaf(d, cnafRules)
 }
 
 func deleteFirewallCnaf(d *schema.ResourceData, meta interface{}) error {

@@ -5,8 +5,10 @@ import (
 )
 
 type Cnaf struct {
-	ID    string  `json:"_id"`
-	Rules []Rules `json:"rules"`
+	ID      string  `json:"_id"`
+	Rules   []Rules `json:"rules"`
+	MinPort int     `json:"minPort"`
+	MaxPort int     `json:"maxPort"`
 }
 
 type Rules struct {
