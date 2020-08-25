@@ -19,18 +19,16 @@ func resourceRegistrySettings() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"settings": {
+			"registry": {
 				Type:        schema.TypeSet,
 				Required:    true,
-				MinItems:    1,
-				MaxItems:    1,
 				Description: "Model for the registry settings",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"version": {
 							Type:        schema.TypeString,
 							Description: "",
-							Default:     2,
+							Default:     "2",
 							Optional:    true,
 						},
 						"registry": {
@@ -87,8 +85,8 @@ func resourceRegistrySettings() *schema.Resource {
 
 func parseRegistrySettings(d *schema.ResourceData) *sdk.RegistrySpecifications {
 	spec := sdk.RegistrySpecifications{}
-	settings := d.Get("settings").([]interface{})
-	for _, i := range settings {
+	settings := d.Get("registry").(*schema.Set)
+	for _, i := range settings.List() {
 		setting := i.(map[string]interface{})
 		spec.RegistrySettings = append(
 			spec.RegistrySettings,
@@ -107,7 +105,7 @@ func parseRegistrySettings(d *schema.ResourceData) *sdk.RegistrySpecifications {
 	return &spec
 }
 
-func saveRegistrySettings(d *schema.ResourceData, spec *sdk.RegistrySpecifications) {
+func saveRegistrySettings(d *schema.ResourceData, spec *sdk.RegistrySpecifications) error {
 	specRegistryTf := make([]interface{}, 0, len(spec.RegistrySettings))
 
 	for _, i := range spec.RegistrySettings {
@@ -125,8 +123,14 @@ func saveRegistrySettings(d *schema.ResourceData, spec *sdk.RegistrySpecificatio
 			})
 	}
 
-	err := d.Set("settings", specRegistryTf)
-	log.Printf("[WARN] Error setting 'settings caused by: %s", err)
+	d.SetId("registry")
+
+	err := d.Set("registry", specRegistryTf)
+	if err != nil {
+		log.Printf("[ERROR] registry setting caused by: %s", err)
+	}
+
+	return err
 }
 
 func createRegistrySettings(d *schema.ResourceData, meta interface{}) error {
@@ -146,8 +150,7 @@ func readRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	saveRegistrySettings(d, registries)
-	return nil
+	return saveRegistrySettings(d, registries)
 }
 
 func deleteRegistrySettings(d *schema.ResourceData, meta interface{}) error {
