@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
+	"strings"
 )
 
 func resourceRegistrySettings() *schema.Resource {
@@ -76,6 +77,36 @@ func resourceRegistrySettings() *schema.Resource {
 							Description: "Indicates the amount of defenders assigned to scan this registry, this applies only for registries with auto-selected defenders",
 							Default:     2,
 						},
+						"namespace": {
+							Optional:    true,
+							Type:        schema.TypeString,
+							Description: "",
+							Default:     "",
+						},
+						"use_aws_role": {
+							Optional:    true,
+							Type:        schema.TypeBool,
+							Description: "",
+							Default:     false,
+						},
+						"credential": {
+							Optional:    true,
+							Type:        schema.TypeString,
+							Description: "The credential id",
+							Default:     "",
+						},
+						"role_arn": {
+							Optional:    true,
+							Type:        schema.TypeString,
+							Description: "",
+							Default:     "",
+						},
+						"version_pattern": {
+							Optional:    true,
+							Type:        schema.TypeString,
+							Description: "",
+							Default:     "",
+						},
 					},
 				},
 			},
@@ -83,26 +114,45 @@ func resourceRegistrySettings() *schema.Resource {
 	}
 }
 
-func parseRegistrySettings(d *schema.ResourceData) *sdk.RegistrySpecifications {
+func parseRegistrySettings(d *schema.ResourceData, client *sdk.Client) (*sdk.RegistrySpecifications, error) {
 	spec := sdk.RegistrySpecifications{}
 	settings := d.Get("registry").(*schema.Set)
 	for _, i := range settings.List() {
+		var providerCred *sdk.ProviderCredential
+		var err error
 		setting := i.(map[string]interface{})
+		credentialId := setting["credential"].(string)
+
+		if strings.Compare(credentialId, "") != 0 {
+			providerCred, err = client.GetProviderCredential(credentialId)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if providerCred == nil {
+			providerCred = &sdk.ProviderCredential{}
+		}
+
 		spec.RegistrySettings = append(
 			spec.RegistrySettings,
 			sdk.RegistrySetting{
-				Version:    setting["version"].(string),
-				Registry:   setting["registry"].(string),
-				Repository: setting["repository"].(string),
-				Tag:        setting["tag"].(string),
-				Os:         setting["os"].(string),
-				Cap:        setting["cap"].(int),
-				Hostname:   setting["hostname"].(string),
-				Scanners:   setting["scanners"].(int),
+				Version:        setting["version"].(string),
+				Registry:       setting["registry"].(string),
+				Repository:     setting["repository"].(string),
+				Tag:            setting["tag"].(string),
+				Os:             setting["os"].(string),
+				Cap:            setting["cap"].(int),
+				Hostname:       setting["hostname"].(string),
+				Scanners:       setting["scanners"].(int),
+				UseAWSRole:     setting["use_aws_role"].(bool),
+				Credential:     *providerCred,
+				RoleArn:        setting["role_arn"].(string),
+				VersionPattern: setting["version_pattern"].(string),
 			})
 	}
 
-	return &spec
+	return &spec, nil
 }
 
 func saveRegistrySettings(d *schema.ResourceData, spec *sdk.RegistrySpecifications) error {
@@ -135,7 +185,12 @@ func saveRegistrySettings(d *schema.ResourceData, spec *sdk.RegistrySpecificatio
 
 func createRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.SetRegistries(parseRegistrySettings(d))
+	settings, err := parseRegistrySettings(d, client)
+	if err != nil {
+		return err
+	}
+
+	err = client.SetRegistries(settings)
 	if err != nil {
 		return err
 	}
