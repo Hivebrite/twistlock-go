@@ -19,6 +19,7 @@ type ProviderCredential struct {
 
 type Secret struct {
 	Encrypted string `json:"encrypted"`
+	Plain     string `json:"plain"`
 }
 
 type APIToken struct {
@@ -31,32 +32,32 @@ func (c *Client) GetProviderCredentials() ([]ProviderCredential, error) {
 		return nil, err
 	}
 
-	credentials := []ProviderCredential{}
-	_, err = c.do(req, &credentials)
+	providerCredentials := []ProviderCredential{}
+	_, err = c.do(req, &providerCredentials)
 	if err != nil {
 		return nil, err
 	}
 
-	return credentials, nil
+	return providerCredentials, nil
 }
 
-func (c *Client) GetProviderCredential(id string) (*ProviderCredential, error) {
+func (c *Client) GetProviderCredential(providerCredentialName string) (*ProviderCredential, error) {
 	resp, err := c.GetProviderCredentials()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, i := range resp {
-		if strings.Compare(id, i.ID) == 0 {
+		if strings.Compare(providerCredentialName, i.ID) == 0 {
 			return &i, nil
 		}
 	}
 
-	return nil, fmt.Errorf("provider credentials: %s not found", id)
+	return nil, fmt.Errorf("providerCredential: %s not found", providerCredentialName)
 }
 
-func (c *Client) SetProviderCredentials(creds []ProviderCredential) error {
-	req, err := c.newRequest("POST", "credentials", creds)
+func (c *Client) SetProviderCredentials(spec *ProviderCredential) error {
+	req, err := c.newRequest("POST", "credentials", spec)
 	if err != nil {
 		return err
 	}
@@ -69,8 +70,8 @@ func (c *Client) SetProviderCredentials(creds []ProviderCredential) error {
 	return nil
 }
 
-func (c *Client) DeleteProviderCredential(id string) error {
-	req, err := c.newRequest("DELETE", fmt.Sprintf("credentials/%s", id), nil)
+func (c *Client) DeleteProviderCredential(providerCredentialName string) error {
+	req, err := c.newRequest("DELETE", fmt.Sprintf("credentials/%s", providerCredentialName), nil)
 	if err != nil {
 		return err
 	}

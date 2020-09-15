@@ -35,9 +35,10 @@ func Provider() terraform.ResourceProvider {
 		DataSourcesMap: map[string]*schema.Resource{},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"twistlock_firewall_cnaf":      resourceFirewallCnaf(),
-			"twistlock_resigstry_settings": resourceRegistrySettings(),
-			"twistlock_tag":                resourceTag(),
+			"twistlock_firewall_cnaf":     resourceFirewallCnaf(),
+			"twistlock_registry_settings": resourceRegistrySettings(),
+			"twistlock_tag":               resourceTag(),
+			"twistlock_credential":        resourceCredentialProvider(),
 		},
 
 		ConfigureFunc: providerConfigure,
