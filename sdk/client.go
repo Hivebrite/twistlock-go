@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -48,6 +49,8 @@ func (c *Client) newRequest(method, path string, body interface{}) (*http.Reques
 			return nil, err
 		}
 	}
+
+	log.Printf("[ERROR] id setting caused by: %s", buf)
 
 	req, err := http.NewRequest(method, u.String(), buf)
 	if err != nil {

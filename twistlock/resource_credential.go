@@ -1,35 +1,35 @@
 package twistlock
 
 import (
+	"log"
+
 	"github.com/Hivebrite/twistlock-go/sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceCredentialProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: createCredentialProvider,
-		Read:   readCredentialProvider,
-		Update: updateCredentialProvider,
-		Delete: deleteCredentialProvider,
+		Create: SetProviderCredential,
+		Read:   readProviderCredential,
+		Update: SetProviderCredential,
+		Delete: deleteProviderCredential,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"id": {
+			"name": {
 				Type:        schema.TypeString,
 				Description: "Name of the credentials",
 				Required:    true,
-				ForceNew:    true,			
+				ForceNew:    true,
 			},
 			"secret": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeMap,
 				Optional:    true,
 				Description: "GCP service account token",
-				MinItems:    1,
-				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"plain": {
@@ -38,46 +38,40 @@ func resourceCredentialProvider() *schema.Resource {
 							Description: "plain value of the token",
 						},
 					},
-				},	
-			}
+				},
+			},
 			"type": {
 				Type:        schema.TypeString,
 				Description: "Type of credentials",
 				Required:    true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
-						"aws", "azure", "gcp", "ibmCloud", "apiToken", "basic", "dtr", "kubeconfig", "certificate"
+						"aws", "azure", "gcp", "ibmCloud", "apiToken", "basic", "dtr", "kubeconfig", "certificate",
 					},
 					false,
 				),
-				
 			},
 		},
 	}
 }
 
-func parseCredentialprovider(d *schema.ResourceData) *sdk.ProviderCredential {
+func parseProviderCredential(d *schema.ResourceData) *sdk.ProviderCredential {
+	secret := d.Get("secret").(map[string]interface{})
 	credential := sdk.ProviderCredential{
-		Type:  d.Get("type").(string),
-		ID: d.Get("id").(string),
-		Secret: []sdk.Secret{},
+		Type: d.Get("type").(string),
+		ID:   d.Get("name").(string),
+		Secret: sdk.Secret{
+			Plain: secret["plain"].(string),
+		},
 	}
 
-
-	secret := d.Get("secret").(*schema.Set).(map[string]interface{})
-	credential.Secret = append(credential.Secret, sdk.Secret{
-		Plain: secret["plain"].(string),
-	})
-	
 	return &credential
 }
 
 func saveCredentialProvider(d *schema.ResourceData, credential *sdk.ProviderCredential) error {
-	credentialSecret := make([]interface{}, 0, len(credential.Secret))
-
 	d.SetId(credential.ID)
 
-	err := d.Set("id", credential.ID)
+	err := d.Set("name", credential.ID)
 	if err != nil {
 		log.Printf("[ERROR] id setting caused by: %s", err)
 		return err
@@ -89,16 +83,10 @@ func saveCredentialProvider(d *schema.ResourceData, credential *sdk.ProviderCred
 		return err
 	}
 
-	for _, i := range credential.Secret {
-		credentialSecret = append(
-			credentialSecret,
-			map[string]interface{}{
-				"plain":           i.Plain,
-			},
-		)
+	credentialSecret := map[string]interface{}{
+		"plain": credential.Secret.Plain,
 	}
-
-	err = d.Set("secret", credential.Secret)
+	err = d.Set("secret", credentialSecret)
 	if err != nil {
 		log.Printf("[ERROR] secret setting caused by: %s", err)
 		return err
@@ -107,43 +95,33 @@ func saveCredentialProvider(d *schema.ResourceData, credential *sdk.ProviderCred
 	return nil
 }
 
-func createCredentialrovider(d *schema.ResourceData, meta interface{}) error {
+func SetProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 
-	err := client.CreateCredentialProvider(parseCredentialprovider(d))
+	err := client.SetProviderCredentials(parseProviderCredential(d))
 	if err != nil {
 		return err
 	}
 
-	if err := readCredentialProvider(d, meta); err != nil {
-		log.Printf("[ERROR] readCredentialprovider func caused by: %s", err)
+	if err := readProviderCredential(d, meta); err != nil {
+		log.Printf("[ERROR] readProviderCredential func caused by: %s", err)
 		return err
 	}
 
 	return nil
 }
 
-func readCredentialProvider(d *schema.ResourceData, meta interface{}) error {
+func readProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	credential, err := client.GetCredentialProvider(d.Get("id").(string))
+	credential, err := client.GetProviderCredential(d.Get("id").(string))
 	if err != nil {
 		return err
 	}
 
-	return saveCredentialprovider(d, credential)
+	return saveCredentialProvider(d, credential)
 }
 
-func updateCredentialProvider(d *schema.ResourceData, meta interface{}) error {
+func deleteProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.UpdateCredentialProvider(d.Id(), parseCredentialprovider(d))
-	if err != nil {
-		return err
-	}
-
-	return readCredentialprovider(d, meta)
-}
-
-func deleteCredentialProvider(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*sdk.Client)
-	return client.DeleteCredentialprovider(d.Id())
+	return client.DeleteProviderCredential(d.Id())
 }
