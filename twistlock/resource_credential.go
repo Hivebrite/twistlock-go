@@ -113,7 +113,7 @@ func SetProviderCredential(d *schema.ResourceData, meta interface{}) error {
 
 func readProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	credential, err := client.GetProviderCredential(d.Get("id").(string))
+	credential, err := client.GetProviderCredential(d.Get("name").(string))
 	if err != nil {
 		return err
 	}
