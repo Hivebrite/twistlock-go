@@ -38,6 +38,7 @@ func Provider() terraform.ResourceProvider {
 			"twistlock_firewall_cnaf":      resourceFirewallCnaf(),
 			"twistlock_resigstry_settings": resourceRegistrySettings(),
 			"twistlock_tag":                resourceTag(),
+			"twistlock_credential":                resourceCredentialProvider(),
 		},
 
 		ConfigureFunc: providerConfigure,

@@ -19,6 +19,7 @@ type ProviderCredential struct {
 
 type Secret struct {
 	Encrypted string `json:"encrypted"`
+	Plain string `json:"plain"`
 }
 
 type APIToken struct {
