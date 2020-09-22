@@ -41,7 +41,6 @@ func resourceAlertProfile() *schema.Resource {
 							Optional:    true,
 							Type:        schema.TypeBool,
 							Description: "",
-							Default:     true,
 						},
 						"channels": {
 							Required:    true,
@@ -627,6 +626,9 @@ func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 	webhookURL := d.Get("webhook").(map[string]interface{})
 	policy := d.Get("policy").(map[string]interface{})
 
+	log.Printf("[DEBUG] Slack value: %s", slack)
+	log.Printf("[ERROR] Enabled type: %T", slack["enabled"])
+
 	alertProfile := sdk.AlertProfile{
 		ID:   d.Get("name").(string),
 		Name: d.Get("name").(string),
@@ -772,7 +774,6 @@ func policyRuleSchemaToInterface(policyRule interface{}) *sdk.PolicyRule {
 
 func SetAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-
 	err := client.SetAlertProfiles(parseAlertProfile(d))
 	if err != nil {
 		return err
