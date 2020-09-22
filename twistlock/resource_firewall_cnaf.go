@@ -1,10 +1,11 @@
 package twistlock
 
 import (
+	"log"
+
 	"github.com/Hivebrite/twistlock-go/sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/spf13/cast"
-	"log"
 )
 
 // TODO(This resource create update correctly on prismacloud but at each run the change is trigger, we will investigate later on that)

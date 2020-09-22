@@ -39,6 +39,7 @@ func Provider() terraform.ResourceProvider {
 			"twistlock_registry_settings": resourceRegistrySettings(),
 			"twistlock_tag":               resourceTag(),
 			"twistlock_credential":        resourceCredentialProvider(),
+			"twistlock_alert_profile":     resourceAlertProfile(),
 		},
 
 		ConfigureFunc: providerConfigure,
