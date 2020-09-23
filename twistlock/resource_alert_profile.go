@@ -10,9 +10,9 @@ import (
 
 func resourceAlertProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: SetAlertProfile,
+		Create: setAlertProfile,
 		Read:   readAlertProfile,
-		Update: SetAlertProfile,
+		Update: setAlertProfile,
 		Delete: deleteAlertProfile,
 
 		Importer: &schema.ResourceImporter{
@@ -864,7 +864,7 @@ func policyRuleSchemaToInterface(policyRule interface{}) *sdk.PolicyRule {
 	return &rule
 }
 
-func SetAlertProfile(d *schema.ResourceData, meta interface{}) error {
+func setAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 	err := client.SetAlertProfiles(parseAlertProfile(d))
 	if err != nil {
