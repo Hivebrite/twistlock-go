@@ -18,9 +18,7 @@ type AlertProfile struct {
 	SecurityAdvisor SecurityAdvisor `json:"securityAdvisor"`
 	Pagerduty       Pagerduty       `json:"pagerduty"`
 	Webhook         Webhook         `json:"webhook"`
-	Demisto         struct {
-	} `json:"demisto"`
-	Policy Policy `json:"policy"`
+	Policy          Policy          `json:"policy"`
 }
 
 type Policy struct {
