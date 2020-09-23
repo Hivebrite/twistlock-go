@@ -27,8 +27,10 @@ func resourceAlertProfile() *schema.Resource {
 				ForceNew:    true,
 			},
 			"slack": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeSet,
 				Optional:    true,
+				MinItems:    1,
+				MaxItems:    1,
 				Description: "Slack parameters",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -38,7 +40,7 @@ func resourceAlertProfile() *schema.Resource {
 							Description: "URL of the endpoint to post the messages",
 						},
 						"enabled": {
-							Optional:    true,
+							Required:    true,
 							Type:        schema.TypeBool,
 							Description: "",
 						},
@@ -53,24 +55,33 @@ func resourceAlertProfile() *schema.Resource {
 					},
 				},
 			},
-			"pager_duty": {
-				Type:        schema.TypeMap,
+			"pagerduty": {
+				Type:        schema.TypeSet,
+				MinItems:    1,
+				MaxItems:    1,
 				Optional:    true,
 				Description: "Pager duty parameters",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"routing_key": {
 							Required: true,
-							Type:     schema.TypeMap,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"encrypted": {
+									"plain": {
 										Required:    true,
 										Type:        schema.TypeString,
 										Description: "",
 									},
 								},
 							},
+						},
+						"enabled": {
+							Required:    true,
+							Type:        schema.TypeBool,
+							Description: "",
 						},
 						"summary": {
 							Required:    true,
@@ -86,14 +97,21 @@ func resourceAlertProfile() *schema.Resource {
 				},
 			},
 			"webhook": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeSet,
 				Optional:    true,
+				MinItems:    1,
+				MaxItems:    1,
 				Description: "Webhook parameters",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"credential_id": {
 							Required:    true,
 							Type:        schema.TypeString,
+							Description: "",
+						},
+						"enabled": {
+							Required:    true,
+							Type:        schema.TypeBool,
 							Description: "",
 						},
 						"url": {
@@ -105,14 +123,18 @@ func resourceAlertProfile() *schema.Resource {
 				},
 			},
 			"policy": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeSet,
+				MinItems:    1,
+				MaxItems:    1,
 				Optional:    true,
 				Description: "which events to alert on",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"admission": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -125,10 +147,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -139,8 +161,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"app_embedded_app_firewall": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -153,10 +177,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -167,8 +191,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"app_embedded_runtime": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -181,10 +207,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -195,8 +221,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"cloud_discovery": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -209,10 +237,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -223,8 +251,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"container_app_firewall": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -237,10 +267,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -251,8 +281,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"container_compliance": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -265,10 +297,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -279,8 +311,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"container_network_firewall": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -293,10 +327,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -307,8 +341,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"container_runtime": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -321,10 +357,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -335,8 +371,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"container_vulnerability": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -349,10 +387,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -363,8 +401,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"defender": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -377,10 +417,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -391,8 +431,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"docker": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -405,10 +447,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -419,8 +461,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"host_app_firewall": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -433,10 +477,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -447,8 +491,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"host_compliance": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -461,10 +507,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -475,8 +521,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"host_runtime": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -489,10 +537,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -503,8 +551,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"incident": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -517,10 +567,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -531,8 +581,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"kubernetes_audit": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -545,10 +597,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -559,8 +611,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"serverless_app_firewall": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -573,10 +627,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -587,8 +641,10 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"serverless_runtime": {
-							Required: true,
-							Type:     schema.TypeMap,
+							Optional: true,
+							Type:     schema.TypeSet,
+							MinItems: 1,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -601,10 +657,10 @@ func resourceAlertProfile() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeBool,
 										Description: "",
-										Default:     false,
+										Default:     true,
 									},
 									"rules": {
-										Required:    false,
+										Optional:    true,
 										Type:        schema.TypeList,
 										Description: "List of rules to be alerted on",
 										Elem: &schema.Schema{
@@ -622,52 +678,74 @@ func resourceAlertProfile() *schema.Resource {
 }
 
 func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
-	slack := d.Get("slack").(map[string]interface{})
-	webhookURL := d.Get("webhook").(map[string]interface{})
-	policy := d.Get("policy").(map[string]interface{})
+	slackList := d.Get("slack").(*schema.Set).List()
+	slack := sdk.Slack{}
 
-	log.Printf("[DEBUG] Slack value: %s", slack)
-	log.Printf("[ERROR] Enabled type: %T", slack["enabled"])
+	if len(slackList) > 0 {
+		slackConfig := slackList[0].(map[string]interface{})
+		slack.Enabled = slackConfig["enabled"].(bool)
+		slack.WebhookURL = slackConfig["webhook_url"].(string)
+		slack.Channels = cast.ToStringSlice(slackConfig["channels"])
+	}
+
+	webhookList := d.Get("webhook").(*schema.Set).List()
+	webhook := sdk.Webhook{}
+
+	if len(webhookList) > 0 {
+		webhookConfig := webhookList[0].(map[string]interface{})
+		webhook.CredentialID = webhookConfig["credential_id"].(string)
+		webhook.URL = webhookConfig["url"].(string)
+		webhook.Enabled = webhookConfig["enabled"].(bool)
+
+	}
+
+	policyList := d.Get("policy").(*schema.Set).List()
+	policy := sdk.Policy{}
+
+	if len(policyList) > 0 {
+		policyConfig := policyList[0].(map[string]interface{})
+
+		policy.Admission = *policyRuleSchemaToInterface(policyConfig["admission"])
+		policy.AppEmbeddedAppFirewall = *policyRuleSchemaToInterface(policyConfig["app_embedded_app_firewall"])
+		policy.AppEmbeddedRuntime = *policyRuleSchemaToInterface(policyConfig["app_embedded_runtime"])
+		policy.CloudDiscovery = *policyRuleSchemaToInterface(policyConfig["cloud_discovery"])
+		policy.ContainerAppFirewall = *policyRuleSchemaToInterface(policyConfig["container_app_firewall"])
+		policy.ContainerCompliance = *policyRuleSchemaToInterface(policyConfig["container_compliance"])
+		policy.ContainerNetworkFirewall = *policyRuleSchemaToInterface(policyConfig["container_network_firewall"])
+		policy.ContainerRuntime = *policyRuleSchemaToInterface(policyConfig["container_runtime"])
+		policy.ContainerVulnerability = *policyRuleSchemaToInterface(policyConfig["container_vulnerability"])
+		policy.Defender = *policyRuleSchemaToInterface(policyConfig["defender"])
+		policy.Docker = *policyRuleSchemaToInterface(policyConfig["docker"])
+		policy.HostAppFirewall = *policyRuleSchemaToInterface(policyConfig["host_app_firewall"])
+		policy.HostCompliance = *policyRuleSchemaToInterface(policyConfig["host_compliance"])
+		policy.HostRuntime = *policyRuleSchemaToInterface(policyConfig["host_runtime"])
+		policy.Incident = *policyRuleSchemaToInterface(policyConfig["incident"])
+		policy.KubernetesAudit = *policyRuleSchemaToInterface(policyConfig["kubernetes_audit"])
+		policy.ServerlessAppFirewall = *policyRuleSchemaToInterface(policyConfig["serverless_app_firewall"])
+		policy.ServerlessRuntime = *policyRuleSchemaToInterface(policyConfig["serverless_runtime"])
+	}
+
+	pagerdutyList := d.Get("pagerduty").(*schema.Set).List()
+	pagerduty := sdk.Pagerduty{}
+
+	if len(pagerdutyList) > 0 {
+		pagerdutyConfig := pagerdutyList[0].(map[string]interface{})
+		pagerdutyRoutingKeyConfig := pagerdutyConfig["routing_key"].(*schema.Set).List()[0]
+		pagerduty.Severity = pagerdutyConfig["severity"].(string)
+		pagerduty.Summary = pagerdutyConfig["summary"].(string)
+		pagerduty.RoutingKey = sdk.Secret{
+			Plain: pagerdutyRoutingKeyConfig.(map[string]interface{})["plain"].(string),
+		}
+		pagerduty.Enabled = pagerdutyConfig["enabled"].(bool)
+	}
 
 	alertProfile := sdk.AlertProfile{
-		ID:   d.Get("name").(string),
-		Name: d.Get("name").(string),
-		Slack: sdk.Slack{
-			Enabled:    slack["enabled"].(bool),
-			WebhookURL: slack["webhook_url"].(string),
-			Channels:   cast.ToStringSlice(slack["channels"]),
-		},
-		Pagerduty: sdk.Pagerduty{
-			Severity: slack["severity"].(string),
-			Summary:  slack["summary"].(string),
-			RoutingKey: sdk.APIToken{
-				Encrypted: slack["routing_key"].(map[string]interface{})["encrypted"].(string),
-			},
-		},
-		Webhook: sdk.Webhook{
-			CredentialID: webhookURL["credential_id"].(string),
-			URL:          webhookURL["url"].(string),
-		},
-		Policy: sdk.Policy{
-			Admission:                *policyRuleSchemaToInterface(policy["admission"]),
-			AppEmbeddedAppFirewall:   *policyRuleSchemaToInterface(policy["app_embedded_app_firewall"]),
-			AppEmbeddedRuntime:       *policyRuleSchemaToInterface(policy["app_embedded_runtime"]),
-			CloudDiscovery:           *policyRuleSchemaToInterface(policy["cloud_discovery"]),
-			ContainerAppFirewall:     *policyRuleSchemaToInterface(policy["container_app_firewall"]),
-			ContainerCompliance:      *policyRuleSchemaToInterface(policy["container_compliance"]),
-			ContainerNetworkFirewall: *policyRuleSchemaToInterface(policy["container_network_firewall"]),
-			ContainerRuntime:         *policyRuleSchemaToInterface(policy["container_runtime"]),
-			ContainerVulnerability:   *policyRuleSchemaToInterface(policy["container_vulnerability"]),
-			Defender:                 *policyRuleSchemaToInterface(policy["defender"]),
-			Docker:                   *policyRuleSchemaToInterface(policy["docker"]),
-			HostAppFirewall:          *policyRuleSchemaToInterface(policy["host_app_firewall"]),
-			HostCompliance:           *policyRuleSchemaToInterface(policy["host_compliance"]),
-			HostRuntime:              *policyRuleSchemaToInterface(policy["host_runtime"]),
-			Incident:                 *policyRuleSchemaToInterface(policy["incident"]),
-			KubernetesAudit:          *policyRuleSchemaToInterface(policy["kubernetes_audit"]),
-			ServerlessAppFirewall:    *policyRuleSchemaToInterface(policy["serverless_app_firewall"]),
-			ServerlessRuntime:        *policyRuleSchemaToInterface(policy["serverless_runtime"]),
-		},
+		ID:        d.Get("name").(string),
+		Name:      d.Get("name").(string),
+		Slack:     slack,
+		Pagerduty: pagerduty,
+		Webhook:   webhook,
+		Policy:    policy,
 	}
 
 	return &alertProfile
@@ -688,10 +766,12 @@ func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) er
 		return err
 	}
 
-	webhook := map[string]interface{}{
+	var webhook []map[string]interface{}
+	webhook = append(webhook, map[string]interface{}{
 		"credential_id": alertProfile.Webhook.CredentialID,
 		"url":           alertProfile.Webhook.URL,
-	}
+		"enabled":       alertProfile.Webhook.Enabled,
+	})
 
 	err = d.Set("webhook", webhook)
 	if err != nil {
@@ -699,11 +779,12 @@ func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) er
 		return err
 	}
 
-	slack := map[string]interface{}{
+	var slack []map[string]interface{}
+	slack = append(slack, map[string]interface{}{
 		"enabled":     alertProfile.Slack.Enabled,
 		"webhook_url": alertProfile.Slack.WebhookURL,
 		"channels":    alertProfile.Slack.Channels,
-	}
+	})
 
 	err = d.Set("slack", slack)
 	if err != nil {
@@ -711,40 +792,45 @@ func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) er
 		return err
 	}
 
-	pagerDuty := map[string]interface{}{
+	var pagerduty []map[string]interface{}
+	var pagerdutyRoutingKey []map[string]interface{}
+
+	pagerduty = append(pagerduty, map[string]interface{}{
 		"severity": alertProfile.Pagerduty.Severity,
 		"summary":  alertProfile.Pagerduty.Summary,
-		"routing_key": map[string]interface{}{
-			"encrypted": alertProfile.Pagerduty.RoutingKey.Encrypted,
-		},
-	}
+		"enabled":  alertProfile.Pagerduty.Enabled,
+		"routing_key": append(pagerdutyRoutingKey, map[string]interface{}{
+			"plain": alertProfile.Pagerduty.RoutingKey.Plain,
+		}),
+	})
 
-	err = d.Set("pager_duty", pagerDuty)
+	err = d.Set("pagerduty", pagerduty)
 	if err != nil {
-		log.Printf("[ERROR] slack setting caused by: %s", err)
+		log.Printf("[ERROR] pagerduty setting caused by: %s", err)
 		return err
 	}
 
-	policy := map[string]interface{}{
-		"admission":                policyRuleToInterface(&alertProfile.Policy.Admission),
-		"app_embedded_app_firewal": policyRuleToInterface(&alertProfile.Policy.AppEmbeddedAppFirewall),
-		"app_embedded_runtime":     policyRuleToInterface(&alertProfile.Policy.AppEmbeddedRuntime),
-		"cloud_discovery":          policyRuleToInterface(&alertProfile.Policy.CloudDiscovery),
-		"container_app_firewall":   policyRuleToInterface(&alertProfile.Policy.ContainerAppFirewall),
-		"container_compliance":     policyRuleToInterface(&alertProfile.Policy.ContainerCompliance),
-		"container_network_firewa": policyRuleToInterface(&alertProfile.Policy.ContainerNetworkFirewall),
-		"container_runtime":        policyRuleToInterface(&alertProfile.Policy.ContainerRuntime),
-		"container_vulnerability":  policyRuleToInterface(&alertProfile.Policy.ContainerVulnerability),
-		"defender":                 policyRuleToInterface(&alertProfile.Policy.Defender),
-		"docker":                   policyRuleToInterface(&alertProfile.Policy.Docker),
-		"host_app_firewall":        policyRuleToInterface(&alertProfile.Policy.HostAppFirewall),
-		"host_compliance":          policyRuleToInterface(&alertProfile.Policy.HostCompliance),
-		"host_runtime":             policyRuleToInterface(&alertProfile.Policy.HostRuntime),
-		"incident":                 policyRuleToInterface(&alertProfile.Policy.Incident),
-		"kubernetes_audit":         policyRuleToInterface(&alertProfile.Policy.KubernetesAudit),
-		"serverless_app_firewall":  policyRuleToInterface(&alertProfile.Policy.ServerlessAppFirewall),
-		"serverless_runtime":       policyRuleToInterface(&alertProfile.Policy.ServerlessRuntime),
-	}
+	var policy []map[string]interface{}
+	policy = append(policy, map[string]interface{}{
+		"admission":                  policyRuleToInterface(&alertProfile.Policy.Admission),
+		"app_embedded_app_firewall":  policyRuleToInterface(&alertProfile.Policy.AppEmbeddedAppFirewall),
+		"app_embedded_runtime":       policyRuleToInterface(&alertProfile.Policy.AppEmbeddedRuntime),
+		"cloud_discovery":            policyRuleToInterface(&alertProfile.Policy.CloudDiscovery),
+		"container_app_firewall":     policyRuleToInterface(&alertProfile.Policy.ContainerAppFirewall),
+		"container_compliance":       policyRuleToInterface(&alertProfile.Policy.ContainerCompliance),
+		"container_network_firewall": policyRuleToInterface(&alertProfile.Policy.ContainerNetworkFirewall),
+		"container_runtime":          policyRuleToInterface(&alertProfile.Policy.ContainerRuntime),
+		"container_vulnerability":    policyRuleToInterface(&alertProfile.Policy.ContainerVulnerability),
+		"defender":                   policyRuleToInterface(&alertProfile.Policy.Defender),
+		"docker":                     policyRuleToInterface(&alertProfile.Policy.Docker),
+		"host_app_firewall":          policyRuleToInterface(&alertProfile.Policy.HostAppFirewall),
+		"host_compliance":            policyRuleToInterface(&alertProfile.Policy.HostCompliance),
+		"host_runtime":               policyRuleToInterface(&alertProfile.Policy.HostRuntime),
+		"incident":                   policyRuleToInterface(&alertProfile.Policy.Incident),
+		"kubernetes_audit":           policyRuleToInterface(&alertProfile.Policy.KubernetesAudit),
+		"serverless_app_firewall":    policyRuleToInterface(&alertProfile.Policy.ServerlessAppFirewall),
+		"serverless_runtime":         policyRuleToInterface(&alertProfile.Policy.ServerlessRuntime),
+	})
 
 	err = d.Set("policy", policy)
 	if err != nil {
@@ -755,21 +841,27 @@ func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) er
 	return nil
 }
 
-func policyRuleToInterface(policyRule *sdk.PolicyRule) map[string]interface{} {
-	return map[string]interface{}{
+func policyRuleToInterface(policyRule *sdk.PolicyRule) []map[string]interface{} {
+	var policyRuleArray []map[string]interface{}
+	policyRuleArray = append(policyRuleArray, map[string]interface{}{
 		"all_rules": policyRule.AllRules,
 		"enabled":   policyRule.Enabled,
 		"rules":     policyRule.Rules,
-	}
+	})
+
+	return policyRuleArray
 }
 
 func policyRuleSchemaToInterface(policyRule interface{}) *sdk.PolicyRule {
-	ruleRetyped := policyRule.(map[string]interface{})
-	return &sdk.PolicyRule{
-		Enabled:  ruleRetyped["enabled"].(bool),
-		AllRules: ruleRetyped["all_rules"].(bool),
-		Rules:    ruleRetyped["rules"].([]string),
+	policyRuleList := policyRule.(*schema.Set).List()
+	rule := sdk.PolicyRule{}
+	if len(policyRuleList) > 0 {
+		ruleRetyped := policyRuleList[0].(map[string]interface{})
+		rule.Enabled = ruleRetyped["enabled"].(bool)
+		rule.AllRules = ruleRetyped["all_rules"].(bool)
+		rule.Rules = cast.ToStringSlice(ruleRetyped["rules"])
 	}
+	return &rule
 }
 
 func SetAlertProfile(d *schema.ResourceData, meta interface{}) error {

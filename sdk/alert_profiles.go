@@ -75,13 +75,15 @@ type SecurityAdvisor struct {
 	TokenURL     string `json:"tokenURL"`
 }
 type Pagerduty struct {
-	RoutingKey APIToken `json:"routingKey"`
-	Summary    string   `json:"summary"`
-	Severity   string   `json:"severity"`
+	Enabled    bool   `json:"enabled"`
+	RoutingKey Secret `json:"routingKey"`
+	Summary    string `json:"summary"`
+	Severity   string `json:"severity"`
 }
 type Webhook struct {
 	CredentialID string `json:"credentialId"`
 	URL          string `json:"url"`
+	Enabled      bool   `json:"enabled"`
 }
 
 type Email struct {
