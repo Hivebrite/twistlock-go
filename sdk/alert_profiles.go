@@ -22,24 +22,23 @@ type AlertProfile struct {
 }
 
 type Policy struct {
-	Admission                PolicyRule `json:"admission"`
-	AppEmbeddedAppFirewall   PolicyRule `json:"appEmbeddedAppFirewall"`
-	AppEmbeddedRuntime       PolicyRule `json:"appEmbeddedRuntime"`
-	CloudDiscovery           PolicyRule `json:"cloudDiscovery"`
-	ContainerAppFirewall     PolicyRule `json:"containerAppFirewall"`
-	ContainerCompliance      PolicyRule `json:"containerCompliance"`
-	ContainerNetworkFirewall PolicyRule `json:"containerNetworkFirewall"`
-	ContainerRuntime         PolicyRule `json:"containerRuntime"`
-	ContainerVulnerability   PolicyRule `json:"containerVulnerability"`
-	Defender                 PolicyRule `json:"defender"`
-	Docker                   PolicyRule `json:"docker"`
-	HostAppFirewall          PolicyRule `json:"hostAppFirewall"`
-	HostCompliance           PolicyRule `json:"hostCompliance"`
-	HostRuntime              PolicyRule `json:"hostRuntime"`
-	Incident                 PolicyRule `json:"incident"`
-	KubernetesAudit          PolicyRule `json:"kubernetesAudit"`
-	ServerlessAppFirewall    PolicyRule `json:"serverlessAppFirewall"`
-	ServerlessRuntime        PolicyRule `json:"serverlessRuntime"`
+	Admission              PolicyRule `json:"admission"`
+	AppEmbeddedAppFirewall PolicyRule `json:"appEmbeddedAppFirewall"`
+	AppEmbeddedRuntime     PolicyRule `json:"appEmbeddedRuntime"`
+	CloudDiscovery         PolicyRule `json:"cloudDiscovery"`
+	ContainerAppFirewall   PolicyRule `json:"containerAppFirewall"`
+	ContainerCompliance    PolicyRule `json:"containerCompliance"`
+	ContainerRuntime       PolicyRule `json:"containerRuntime"`
+	ContainerVulnerability PolicyRule `json:"containerVulnerability"`
+	Defender               PolicyRule `json:"defender"`
+	Docker                 PolicyRule `json:"docker"`
+	HostAppFirewall        PolicyRule `json:"hostAppFirewall"`
+	HostCompliance         PolicyRule `json:"hostCompliance"`
+	HostRuntime            PolicyRule `json:"hostRuntime"`
+	Incident               PolicyRule `json:"incident"`
+	KubernetesAudit        PolicyRule `json:"kubernetesAudit"`
+	ServerlessAppFirewall  PolicyRule `json:"serverlessAppFirewall"`
+	ServerlessRuntime      PolicyRule `json:"serverlessRuntime"`
 }
 
 type PolicyRule struct {
