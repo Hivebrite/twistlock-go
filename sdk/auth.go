@@ -14,6 +14,7 @@ func (c *Client) Authentication(username, password string) error {
 		Username: username,
 		Password: password,
 	})
+
 	if err != nil {
 		return err
 	}
