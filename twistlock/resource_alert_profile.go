@@ -711,7 +711,6 @@ func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 		policy.CloudDiscovery = *policyRuleSchemaToInterface(policyConfig["cloud_discovery"])
 		policy.ContainerAppFirewall = *policyRuleSchemaToInterface(policyConfig["container_app_firewall"])
 		policy.ContainerCompliance = *policyRuleSchemaToInterface(policyConfig["container_compliance"])
-		policy.ContainerNetworkFirewall = *policyRuleSchemaToInterface(policyConfig["container_network_firewall"])
 		policy.ContainerRuntime = *policyRuleSchemaToInterface(policyConfig["container_runtime"])
 		policy.ContainerVulnerability = *policyRuleSchemaToInterface(policyConfig["container_vulnerability"])
 		policy.Defender = *policyRuleSchemaToInterface(policyConfig["defender"])
@@ -812,24 +811,23 @@ func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) er
 
 	var policy []map[string]interface{}
 	policy = append(policy, map[string]interface{}{
-		"admission":                  policyRuleToInterface(&alertProfile.Policy.Admission),
-		"app_embedded_app_firewall":  policyRuleToInterface(&alertProfile.Policy.AppEmbeddedAppFirewall),
-		"app_embedded_runtime":       policyRuleToInterface(&alertProfile.Policy.AppEmbeddedRuntime),
-		"cloud_discovery":            policyRuleToInterface(&alertProfile.Policy.CloudDiscovery),
-		"container_app_firewall":     policyRuleToInterface(&alertProfile.Policy.ContainerAppFirewall),
-		"container_compliance":       policyRuleToInterface(&alertProfile.Policy.ContainerCompliance),
-		"container_network_firewall": policyRuleToInterface(&alertProfile.Policy.ContainerNetworkFirewall),
-		"container_runtime":          policyRuleToInterface(&alertProfile.Policy.ContainerRuntime),
-		"container_vulnerability":    policyRuleToInterface(&alertProfile.Policy.ContainerVulnerability),
-		"defender":                   policyRuleToInterface(&alertProfile.Policy.Defender),
-		"docker":                     policyRuleToInterface(&alertProfile.Policy.Docker),
-		"host_app_firewall":          policyRuleToInterface(&alertProfile.Policy.HostAppFirewall),
-		"host_compliance":            policyRuleToInterface(&alertProfile.Policy.HostCompliance),
-		"host_runtime":               policyRuleToInterface(&alertProfile.Policy.HostRuntime),
-		"incident":                   policyRuleToInterface(&alertProfile.Policy.Incident),
-		"kubernetes_audit":           policyRuleToInterface(&alertProfile.Policy.KubernetesAudit),
-		"serverless_app_firewall":    policyRuleToInterface(&alertProfile.Policy.ServerlessAppFirewall),
-		"serverless_runtime":         policyRuleToInterface(&alertProfile.Policy.ServerlessRuntime),
+		"admission":                 policyRuleToInterface(&alertProfile.Policy.Admission),
+		"app_embedded_app_firewall": policyRuleToInterface(&alertProfile.Policy.AppEmbeddedAppFirewall),
+		"app_embedded_runtime":      policyRuleToInterface(&alertProfile.Policy.AppEmbeddedRuntime),
+		"cloud_discovery":           policyRuleToInterface(&alertProfile.Policy.CloudDiscovery),
+		"container_app_firewall":    policyRuleToInterface(&alertProfile.Policy.ContainerAppFirewall),
+		"container_compliance":      policyRuleToInterface(&alertProfile.Policy.ContainerCompliance),
+		"container_runtime":         policyRuleToInterface(&alertProfile.Policy.ContainerRuntime),
+		"container_vulnerability":   policyRuleToInterface(&alertProfile.Policy.ContainerVulnerability),
+		"defender":                  policyRuleToInterface(&alertProfile.Policy.Defender),
+		"docker":                    policyRuleToInterface(&alertProfile.Policy.Docker),
+		"host_app_firewall":         policyRuleToInterface(&alertProfile.Policy.HostAppFirewall),
+		"host_compliance":           policyRuleToInterface(&alertProfile.Policy.HostCompliance),
+		"host_runtime":              policyRuleToInterface(&alertProfile.Policy.HostRuntime),
+		"incident":                  policyRuleToInterface(&alertProfile.Policy.Incident),
+		"kubernetes_audit":          policyRuleToInterface(&alertProfile.Policy.KubernetesAudit),
+		"serverless_app_firewall":   policyRuleToInterface(&alertProfile.Policy.ServerlessAppFirewall),
+		"serverless_runtime":        policyRuleToInterface(&alertProfile.Policy.ServerlessRuntime),
 	})
 
 	err = d.Set("policy", policy)
