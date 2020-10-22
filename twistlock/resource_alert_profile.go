@@ -27,8 +27,10 @@ func resourceAlertProfile() *schema.Resource {
 				ForceNew:    true,
 			},
 			"slack": {
-				Type:        schema.TypeSet,
-				Optional:    true,
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+
 				MinItems:    1,
 				MaxItems:    1,
 				Description: "Slack parameters",
@@ -40,7 +42,7 @@ func resourceAlertProfile() *schema.Resource {
 							Description: "URL of the endpoint to post the messages",
 						},
 						"enabled": {
-							Required:    true,
+							Optional:    true,
 							Type:        schema.TypeBool,
 							Description: "",
 						},
@@ -56,10 +58,12 @@ func resourceAlertProfile() *schema.Resource {
 				},
 			},
 			"pagerduty": {
-				Type:        schema.TypeSet,
-				MinItems:    1,
-				MaxItems:    1,
-				Optional:    true,
+				Type:     schema.TypeSet,
+				MinItems: 1,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
+
 				Description: "Pager duty parameters",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -79,7 +83,7 @@ func resourceAlertProfile() *schema.Resource {
 							},
 						},
 						"enabled": {
-							Required:    true,
+							Optional:    true,
 							Type:        schema.TypeBool,
 							Description: "",
 						},
@@ -99,18 +103,19 @@ func resourceAlertProfile() *schema.Resource {
 			"webhook": {
 				Type:        schema.TypeSet,
 				Optional:    true,
+				Computed:    true,
 				MinItems:    1,
 				MaxItems:    1,
 				Description: "Webhook parameters",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"credential_id": {
-							Required:    true,
+							Optional:    true,
 							Type:        schema.TypeString,
 							Description: "",
 						},
 						"enabled": {
-							Required:    true,
+							Optional:    true,
 							Type:        schema.TypeBool,
 							Description: "",
 						},
@@ -130,546 +135,24 @@ func resourceAlertProfile() *schema.Resource {
 				Description: "which events to alert on",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"admission": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"app_embedded_app_firewall": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"app_embedded_runtime": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"cloud_discovery": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"container_app_firewall": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"container_compliance": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"container_network_firewall": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"container_runtime": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"container_vulnerability": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"defender": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"docker": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"host_app_firewall": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"host_compliance": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"host_runtime": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"incident": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"kubernetes_audit": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"serverless_app_firewall": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-						"serverless_runtime": {
-							Optional: true,
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     false,
-									},
-									"all_rules": {
-										Optional:    true,
-										Type:        schema.TypeBool,
-										Description: "",
-										Default:     true,
-									},
-									"rules": {
-										Optional:    true,
-										Type:        schema.TypeList,
-										Description: "List of rules to be alerted on",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
+						"admission":                  policySchema(),
+						"app_embedded_app_firewall":  policySchema(),
+						"app_embedded_runtime":       policySchema(),
+						"cloud_discovery":            policySchema(),
+						"container_app_firewall":     policySchema(),
+						"container_compliance":       policySchema(),
+						"container_network_firewall": policySchema(),
+						"container_runtime":          policySchema(),
+						"container_vulnerability":    policySchema(),
+						"defender":                   policySchema(),
+						"docker":                     policySchema(),
+						"host_app_firewall":          policySchema(),
+						"host_compliance":            policySchema(),
+						"host_runtime":               policySchema(),
+						"incident":                   policySchema(),
+						"kubernetes_audit":           policySchema(),
+						"serverless_app_firewall":    policySchema(),
+						"serverless_runtime":         policySchema(),
 					},
 				},
 			},
@@ -679,7 +162,14 @@ func resourceAlertProfile() *schema.Resource {
 
 func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 	slackList := d.Get("slack").(*schema.Set).List()
-	slack := sdk.Slack{}
+	webhookList := d.Get("webhook").(*schema.Set).List()
+	pagerdutyList := d.Get("pagerduty").(*schema.Set).List()
+	policyList := d.Get("policy").(*schema.Set).List()
+
+	slack := sdk.Slack{Enabled: false}
+	webhook := sdk.Webhook{Enabled: false}
+	pagerduty := sdk.Pagerduty{Enabled: false}
+	policy := sdk.Policy{}
 
 	if len(slackList) > 0 {
 		slackConfig := slackList[0].(map[string]interface{})
@@ -688,19 +178,12 @@ func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 		slack.Channels = cast.ToStringSlice(slackConfig["channels"])
 	}
 
-	webhookList := d.Get("webhook").(*schema.Set).List()
-	webhook := sdk.Webhook{}
-
 	if len(webhookList) > 0 {
 		webhookConfig := webhookList[0].(map[string]interface{})
 		webhook.CredentialID = webhookConfig["credential_id"].(string)
 		webhook.URL = webhookConfig["url"].(string)
 		webhook.Enabled = webhookConfig["enabled"].(bool)
-
 	}
-
-	policyList := d.Get("policy").(*schema.Set).List()
-	policy := sdk.Policy{}
 
 	if len(policyList) > 0 {
 		policyConfig := policyList[0].(map[string]interface{})
@@ -724,12 +207,10 @@ func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 		policy.ServerlessRuntime = *policyRuleSchemaToInterface(policyConfig["serverless_runtime"])
 	}
 
-	pagerdutyList := d.Get("pagerduty").(*schema.Set).List()
-	pagerduty := sdk.Pagerduty{}
-
 	if len(pagerdutyList) > 0 {
 		pagerdutyConfig := pagerdutyList[0].(map[string]interface{})
 		pagerdutyRoutingKeyConfig := pagerdutyConfig["routing_key"].(*schema.Set).List()[0]
+
 		pagerduty.Severity = pagerdutyConfig["severity"].(string)
 		pagerduty.Summary = pagerdutyConfig["summary"].(string)
 		pagerduty.RoutingKey = sdk.Secret{
@@ -738,16 +219,14 @@ func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 		pagerduty.Enabled = pagerdutyConfig["enabled"].(bool)
 	}
 
-	alertProfile := sdk.AlertProfile{
+	return &sdk.AlertProfile{
 		ID:        d.Get("name").(string),
 		Name:      d.Get("name").(string),
 		Slack:     slack,
-		Pagerduty: pagerduty,
 		Webhook:   webhook,
+		Pagerduty: pagerduty,
 		Policy:    policy,
 	}
-
-	return &alertProfile
 }
 
 func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) error {
@@ -880,6 +359,7 @@ func setAlertProfile(d *schema.ResourceData, meta interface{}) error {
 func readAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 	alertProfile, err := client.GetAlertProfile(d.Get("name").(string))
+
 	if err != nil {
 		return err
 	}

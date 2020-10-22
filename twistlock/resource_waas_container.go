@@ -35,7 +35,7 @@ func resourceWaasContainer() *schema.Resource {
 				Default:     30000,
 			},
 			"rules": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -105,13 +105,14 @@ func resourceWaasContainer() *schema.Resource {
 						},
 						"applications_spec": {
 							Required:    true,
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Description: "firewalls rules to be applied to the resources",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"certificate": {
 										Type:        schema.TypeSet,
 										Optional:    true,
+										Computed:    true,
 										Description: "X509 Certificate",
 										MinItems:    1,
 										MaxItems:    1,
@@ -579,12 +580,12 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 	waasSpec := sdk.Waas{}
 	waasSpec.MaxPort = d.Get("max_port").(int)
 	waasSpec.MinPort = d.Get("min_port").(int)
-	rules := d.Get("rules").(*schema.Set).List()
+	rules := d.Get("rules").([]interface{})
 
 	for _, i := range rules {
 		rule := i.(map[string]interface{})
 		resources := rule["resources"].(*schema.Set).List()[0].(map[string]interface{})
-		applicationsSpec := rule["applications_spec"].(*schema.Set).List()
+		applicationsSpec := rule["applications_spec"].([]interface{})
 
 		ruleObject := sdk.Rule{
 			Name: rule["name"].(string),
@@ -649,6 +650,7 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 							return certificate["encrypted"].(string)
 						}(),
 					},
+
 					APISpec: sdk.ApiSpec{
 						Endpoints: endpoints,
 						Effect:    "disable",
@@ -743,6 +745,7 @@ func saveWaasContainer(d *schema.ResourceData, waas *sdk.Waas) error {
 						"encrypted": applicationSpec.Certificate.Encrypted,
 					},
 				},
+
 				"api_spec": []map[string]interface{}{
 					{
 						"endpoints": endpoints,
