@@ -127,7 +127,7 @@ func parseRegistrySettings(d *schema.ResourceData, client *sdk.Client) (*registr
 		credentialID := setting["credential"].(string)
 
 		if strings.Compare(credentialID, "") != 0 {
-			providerCred, err = credentials.GetProviderCredential(*client, credentialID)
+			providerCred, err = credentials.Get(*client, credentialID)
 			if err != nil {
 				return nil, err
 			}
@@ -193,7 +193,7 @@ func createRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	err = registry.SetRegistries(*client, settings)
+	err = registry.Set(*client, settings)
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func createRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 
 func readRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	registries, err := registry.GetRegistries(*client)
+	registries, err := registry.Index(*client)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func readRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 
 func deleteRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := registry.SetRegistries(*client, &registry.Specifications{})
+	err := registry.Set(*client, &registry.Specifications{})
 	if err != nil {
 		return err
 	}

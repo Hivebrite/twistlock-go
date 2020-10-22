@@ -96,7 +96,7 @@ func AlertingIntToLevel(level int) string {
 	}[level]
 }
 
-func GetPolicies(c sdk.Client) (*Policies, error) {
+func Get(c sdk.Client) (*Policies, error) {
 	req, err := c.NewRequest("GET", "policies/vulnerability/images", nil)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func GetPolicies(c sdk.Client) (*Policies, error) {
 	return &policies, nil
 }
 
-func SetPolicies(c sdk.Client, policies *Policies) error {
+func Set(c sdk.Client, policies *Policies) error {
 	req, err := c.NewRequest("PUT", "policies/vulnerability/images", policies)
 	if err != nil {
 		return err

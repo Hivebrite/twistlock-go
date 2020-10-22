@@ -115,7 +115,7 @@ type Jira struct {
 	} `json:"assignee"`
 }
 
-func GetAlertProfiles(c sdk.Client) ([]Profile, error) {
+func Index(c sdk.Client) ([]Profile, error) {
 	req, err := c.NewRequest("GET", "alert-profiles", nil)
 	if err != nil {
 		return nil, err
@@ -130,8 +130,8 @@ func GetAlertProfiles(c sdk.Client) ([]Profile, error) {
 	return alertProfiles, nil
 }
 
-func GetAlertProfile(c sdk.Client, alertProfileName string) (*Profile, error) {
-	resp, err := GetAlertProfiles(c)
+func Get(c sdk.Client, alertProfileName string) (*Profile, error) {
+	resp, err := Index(c)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func GetAlertProfile(c sdk.Client, alertProfileName string) (*Profile, error) {
 	return nil, fmt.Errorf("alertProfile: %s not found", alertProfileName)
 }
 
-func SetAlertProfiles(c sdk.Client, spec *Profile) error {
+func Set(c sdk.Client, spec *Profile) error {
 	req, err := c.NewRequest("POST", "alert-profiles", spec)
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func SetAlertProfiles(c sdk.Client, spec *Profile) error {
 	return nil
 }
 
-func DeleteAlertProfile(c sdk.Client, alertProfileName string) error {
+func Delete(c sdk.Client, alertProfileName string) error {
 	req, err := c.NewRequest("DELETE", fmt.Sprintf("alert-profiles/%s", alertProfileName), nil)
 	if err != nil {
 		return err

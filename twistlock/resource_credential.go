@@ -99,7 +99,7 @@ func saveCredentialProvider(d *schema.ResourceData, credential *credentials.Prov
 func SetProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 
-	err := credentials.SetProviderCredentials(*client, parseProviderCredential(d))
+	err := credentials.Set(*client, parseProviderCredential(d))
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func SetProviderCredential(d *schema.ResourceData, meta interface{}) error {
 
 func readProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	credential, err := credentials.GetProviderCredential(*client, d.Get("name").(string))
+	credential, err := credentials.Get(*client, d.Get("name").(string))
 	if err != nil {
 		return err
 	}
@@ -124,5 +124,5 @@ func readProviderCredential(d *schema.ResourceData, meta interface{}) error {
 
 func deleteProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	return credentials.DeleteProviderCredential(*client, d.Id())
+	return credentials.Delete(*client, d.Id())
 }

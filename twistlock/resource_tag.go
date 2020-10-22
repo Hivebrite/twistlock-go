@@ -121,7 +121,7 @@ func saveTag(d *schema.ResourceData, objectTag *tag.Tag) error {
 func createTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 
-	err := tag.CreateTag(*client, parseTag(d))
+	err := tag.Create(*client, parseTag(d))
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func createTag(d *schema.ResourceData, meta interface{}) error {
 
 func readTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	tag, err := tag.GetTag(*client, d.Get("name").(string))
+	tag, err := tag.Get(*client, d.Get("name").(string))
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func readTag(d *schema.ResourceData, meta interface{}) error {
 
 func updateTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := tag.UpdateTag(*client, d.Id(), parseTag(d))
+	err := tag.Update(*client, d.Id(), parseTag(d))
 	if err != nil {
 		return err
 	}
@@ -156,5 +156,5 @@ func updateTag(d *schema.ResourceData, meta interface{}) error {
 
 func deleteTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	return tag.DeleteTag(*client, d.Id())
+	return tag.Delete(*client, d.Id())
 }

@@ -845,7 +845,7 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 
 func createWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := waas.SetWaasRules(*client, parseWaasContainer(d))
+	err := waas.Set(*client, parseWaasContainer(d))
 	if err != nil {
 		return err
 	}
@@ -855,7 +855,7 @@ func createWaasContainer(d *schema.ResourceData, meta interface{}) error {
 
 func readWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	waasRules, err := waas.GetWaasRules(*client)
+	waasRules, err := waas.Index(*client)
 	if err != nil {
 		return err
 	}
@@ -865,7 +865,7 @@ func readWaasContainer(d *schema.ResourceData, meta interface{}) error {
 
 func deleteWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := waas.SetWaasRules(*client, &waas.Waas{})
+	err := waas.Set(*client, &waas.Waas{})
 	if err != nil {
 		return err
 	}

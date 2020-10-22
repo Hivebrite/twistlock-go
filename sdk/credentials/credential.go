@@ -23,7 +23,7 @@ type APIToken struct {
 	Encrypted string `json:"encrypted"`
 }
 
-func GetProviderCredentials(c sdk.Client) ([]ProviderCredential, error) {
+func Index(c sdk.Client) ([]ProviderCredential, error) {
 	req, err := c.NewRequest("GET", "credentials", nil)
 	if err != nil {
 		return nil, err
@@ -38,8 +38,8 @@ func GetProviderCredentials(c sdk.Client) ([]ProviderCredential, error) {
 	return providerCredentials, nil
 }
 
-func GetProviderCredential(c sdk.Client, providerCredentialName string) (*ProviderCredential, error) {
-	resp, err := GetProviderCredentials(c)
+func Get(c sdk.Client, providerCredentialName string) (*ProviderCredential, error) {
+	resp, err := Index(c)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func GetProviderCredential(c sdk.Client, providerCredentialName string) (*Provid
 	return nil, fmt.Errorf("providerCredential: %s not found", providerCredentialName)
 }
 
-func SetProviderCredentials(c sdk.Client, spec *ProviderCredential) error {
+func Set(c sdk.Client, spec *ProviderCredential) error {
 	req, err := c.NewRequest("POST", "credentials", spec)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func SetProviderCredentials(c sdk.Client, spec *ProviderCredential) error {
 	return nil
 }
 
-func DeleteProviderCredential(c sdk.Client, providerCredentialName string) error {
+func Delete(c sdk.Client, providerCredentialName string) error {
 	req, err := c.NewRequest("DELETE", fmt.Sprintf("credentials/%s", providerCredentialName), nil)
 	if err != nil {
 		return err

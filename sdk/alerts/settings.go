@@ -10,7 +10,7 @@ type Settings struct {
 	AggregationPeriodMs int `json:"aggregationPeriodMs"`
 }
 
-func GetAlertSettings(c sdk.Client) (*Settings, error) {
+func GetSettings(c sdk.Client) (*Settings, error) {
 	req, err := c.NewRequest("GET", "settings/alerts", nil)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func GetAlertSettings(c sdk.Client) (*Settings, error) {
 	return &alertSettings, nil
 }
 
-func SetAlertSettings(c sdk.Client, spec *Settings) error {
+func SetSettings(c sdk.Client, spec *Settings) error {
 	req, err := c.NewRequest("POST", "settings/alerts", spec)
 	if err != nil {
 		return err

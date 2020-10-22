@@ -25,7 +25,7 @@ type Setting struct {
 	VersionPattern string                         `json:"versionPattern"`
 }
 
-func GetRegistries(c sdk.Client) (*Specifications, error) {
+func Index(c sdk.Client) (*Specifications, error) {
 	req, err := c.NewRequest("GET", "settings/registry", nil)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func GetRegistries(c sdk.Client) (*Specifications, error) {
 	return &registries, nil
 }
 
-func SetRegistries(c sdk.Client, spec *Specifications) error {
+func Set(c sdk.Client, spec *Specifications) error {
 	req, err := c.NewRequest("PUT", "settings/registry", spec)
 	if err != nil {
 		return err

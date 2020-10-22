@@ -344,7 +344,7 @@ func policyRuleSchemaToInterface(policyRule interface{}) *alerts.PolicyRule {
 
 func setAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := alerts.SetAlertProfiles(*client, parseAlertProfile(d))
+	err := alerts.Set(*client, parseAlertProfile(d))
 	if err != nil {
 		return err
 	}
@@ -359,7 +359,7 @@ func setAlertProfile(d *schema.ResourceData, meta interface{}) error {
 
 func readAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	alertProfile, err := alerts.GetAlertProfile(*client, d.Get("name").(string))
+	alertProfile, err := alerts.Get(*client, d.Get("name").(string))
 
 	if err != nil {
 		return err
@@ -370,5 +370,5 @@ func readAlertProfile(d *schema.ResourceData, meta interface{}) error {
 
 func deleteAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	return alerts.DeleteAlertProfile(*client, d.Id())
+	return alerts.Delete(*client, d.Id())
 }

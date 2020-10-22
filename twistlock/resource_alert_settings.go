@@ -11,9 +11,9 @@ import (
 
 func resourceAlertSettings() *schema.Resource {
 	return &schema.Resource{
-		Create: SetAlertSettings,
+		Create: SetSettings,
 		Read:   readAlertSettings,
-		Update: SetAlertSettings,
+		Update: SetSettings,
 		Delete: deleteAlertSettings,
 
 		Importer: &schema.ResourceImporter{
@@ -55,9 +55,9 @@ func saveAlertSettings(d *schema.ResourceData, alertSettings *alerts.Settings) e
 	return nil
 }
 
-func SetAlertSettings(d *schema.ResourceData, meta interface{}) error {
+func SetSettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := alerts.SetAlertSettings(*client, parseAlertSettings(d))
+	err := alerts.SetSettings(*client, parseAlertSettings(d))
 
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func SetAlertSettings(d *schema.ResourceData, meta interface{}) error {
 
 func readAlertSettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	alertSettings, err := alerts.GetAlertSettings(*client)
+	alertSettings, err := alerts.GetSettings(*client)
 	if err != nil {
 		return err
 	}

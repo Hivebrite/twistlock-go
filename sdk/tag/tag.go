@@ -18,7 +18,7 @@ type Vuln struct {
 	Comment     string `json:"comment"`
 }
 
-func GetTags(c sdk.Client) ([]Tag, error) {
+func Index(c sdk.Client) ([]Tag, error) {
 	req, err := c.NewRequest("GET", "tags", nil)
 	if err != nil {
 		return nil, err
@@ -33,8 +33,8 @@ func GetTags(c sdk.Client) ([]Tag, error) {
 	return tags, nil
 }
 
-func GetTag(c sdk.Client, tagName string) (*Tag, error) {
-	resp, err := GetTags(c)
+func Get(c sdk.Client, tagName string) (*Tag, error) {
+	resp, err := Index(c)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func GetTag(c sdk.Client, tagName string) (*Tag, error) {
 	return nil, fmt.Errorf("tag: %s not found", tagName)
 }
 
-func CreateTag(c sdk.Client, spec *Tag) error {
+func Create(c sdk.Client, spec *Tag) error {
 	req, err := c.NewRequest("POST", "tags", spec)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func CreateTag(c sdk.Client, spec *Tag) error {
 	return nil
 }
 
-func UpdateTag(c sdk.Client, tagName string, spec *Tag) error {
+func Update(c sdk.Client, tagName string, spec *Tag) error {
 	req, err := c.NewRequest("PUT", fmt.Sprintf("tags/%s", tagName), spec)
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func UpdateTag(c sdk.Client, tagName string, spec *Tag) error {
 	return nil
 }
 
-func DeleteTag(c sdk.Client, tagName string) error {
+func Delete(c sdk.Client, tagName string) error {
 	req, err := c.NewRequest("DELETE", fmt.Sprintf("tags/%s", tagName), nil)
 	if err != nil {
 		return err
