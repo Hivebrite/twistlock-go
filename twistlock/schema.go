@@ -30,6 +30,7 @@ func policySchema() *schema.Schema {
 
 	return &schema.Schema{
 		Optional:    true,
+		Computed:    true,
 		Type:        schema.TypeSet,
 		MinItems:    1,
 		MaxItems:    1,
