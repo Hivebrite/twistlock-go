@@ -62,6 +62,40 @@ type Rules struct {
 	GraceDays      int            `json:"graceDays"`
 }
 
+const (
+	Disable  = "disable"
+	Low      = "low"
+	Medium   = "medium"
+	High     = "high"
+	Critical = "critical"
+)
+
+const (
+	EffectIgnore = "ignore"
+	EffectAlert  = "alert"
+	EffectBlock  = "block"
+)
+
+func AlertingLevelToInt(level string) int {
+	return map[string]int{
+		Disable:  0,
+		Low:      1,
+		Medium:   4,
+		High:     7,
+		Critical: 9,
+	}[level]
+}
+
+func AlertingIntToLevel(level int) string {
+	return map[int]string{
+		0: Disable,
+		1: Low,
+		4: Medium,
+		7: High,
+		9: Critical,
+	}[level]
+}
+
 func GetPolicies(c sdk.Client) (*Policies, error) {
 	req, err := c.NewRequest("GET", "policies/vulnerability/images", nil)
 	if err != nil {

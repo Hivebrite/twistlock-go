@@ -48,7 +48,6 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 			return nil, err
 		}
 	}
-
 	req, err := http.NewRequest(method, u.String(), buf)
 	if err != nil {
 		return nil, err

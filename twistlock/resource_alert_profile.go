@@ -129,7 +129,7 @@ func resourceAlertProfile() *schema.Resource {
 				},
 			},
 			"policy": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				MinItems:    1,
 				MaxItems:    1,
 				Optional:    true,
