@@ -21,10 +21,15 @@ type Resources struct {
 	Clusters   []string `json:"clusters"`
 }
 
-type Threshold struct {
+type AlertThreshold struct {
 	Disabled bool `json:"disabled"`
 	Value    int  `json:"value"`
 }
+type BlockThreshold struct {
+	Enabled bool `json:"enabled"`
+	Value   int  `json:"value"`
+}
+
 type Expiration struct {
 	Enabled bool      `json:"enabled"`
 	Date    time.Time `json:"date"`
@@ -42,21 +47,19 @@ type Tags struct {
 	Expiration  Expiration `json:"expiration"`
 }
 type Rules struct {
-	Modified       time.Time  `json:"modified"`
-	Owner          string     `json:"owner"`
-	Name           string     `json:"name"`
-	PreviousName   string     `json:"previousName"`
-	Effect         string     `json:"effect"`
-	Resources      Resources  `json:"resources"`
-	Action         []string   `json:"action,omitempty"`
-	Group          []string   `json:"group,omitempty"`
-	BlockMsg       string     `json:"blockMsg,omitempty"`
-	Verbose        bool       `json:"verbose,omitempty"`
-	AlertThreshold Threshold  `json:"alertThreshold"`
-	BlockThreshold Threshold  `json:"blockThreshold"`
-	CveRules       []CveRules `json:"cveRules,omitempty"`
-	Tags           []Tags     `json:"tags,omitempty"`
-	GraceDays      int        `json:"graceDays"`
+	Modified       time.Time      `json:"modified"`
+	Owner          string         `json:"owner"`
+	Name           string         `json:"name"`
+	PreviousName   string         `json:"previousName"`
+	Effect         string         `json:"effect"`
+	Resources      Resources      `json:"resources"`
+	BlockMsg       string         `json:"blockMsg,omitempty"`
+	Verbose        bool           `json:"verbose,omitempty"`
+	AlertThreshold AlertThreshold `json:"alertThreshold"`
+	BlockThreshold BlockThreshold `json:"blockThreshold"`
+	CveRules       []CveRules     `json:"cveRules,omitempty"`
+	Tags           []Tags         `json:"tags,omitempty"`
+	GraceDays      int            `json:"graceDays"`
 }
 
 func GetPolicies(c sdk.Client) (*Policies, error) {
