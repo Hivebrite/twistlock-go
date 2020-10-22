@@ -1,7 +1,9 @@
-package sdk
+package waas
 
 import (
 	"time"
+
+	"github.com/Hivebrite/twistlock-go/sdk"
 )
 
 type Waas struct {
@@ -107,13 +109,13 @@ type HeaderSpec struct {
 	Values   []string `json:"values"`
 }
 
-func (c *Client) GetWaasRules() (*Waas, error) {
-	req, err := c.newRequest("GET", "policies/firewall/app/container", nil)
+func GetWaasRules(c sdk.Client) (*Waas, error) {
+	req, err := c.NewRequest("GET", "policies/firewall/app/container", nil)
 	if err != nil {
 		return nil, err
 	}
 	var waas Waas
-	_, err = c.do(req, &waas)
+	_, err = c.Do(req, &waas)
 	if err != nil {
 		return nil, err
 	}
@@ -121,12 +123,12 @@ func (c *Client) GetWaasRules() (*Waas, error) {
 	return &waas, nil
 }
 
-func (c *Client) SetWaasRules(waas *Waas) error {
-	req, err := c.newRequest("PUT", "policies/firewall/app/container", waas)
+func SetWaasRules(c sdk.Client, waas *Waas) error {
+	req, err := c.NewRequest("PUT", "policies/firewall/app/container", waas)
 	if err != nil {
 		return err
 	}
-	_, err = c.do(req, nil)
+	_, err = c.Do(req, nil)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ type Credentials struct {
 }
 
 func (c *Client) Authentication(username, password string) error {
-	req, err := c.newRequest("POST", "authenticate", &Credentials{
+	req, err := c.NewRequest("POST", "authenticate", &Credentials{
 		Username: username,
 		Password: password,
 	})
@@ -20,7 +20,7 @@ func (c *Client) Authentication(username, password string) error {
 	}
 
 	token := TokenResponse{}
-	_, err = c.do(req, &token)
+	_, err = c.Do(req, &token)
 	if err != nil {
 		return err
 	}

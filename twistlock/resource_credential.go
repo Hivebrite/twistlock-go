@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Hivebrite/twistlock-go/sdk"
+	"github.com/Hivebrite/twistlock-go/sdk/credentials"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -55,9 +56,9 @@ func resourceCredentialProvider() *schema.Resource {
 	}
 }
 
-func parseProviderCredential(d *schema.ResourceData) *sdk.ProviderCredential {
+func parseProviderCredential(d *schema.ResourceData) *credentials.ProviderCredential {
 	secret := d.Get("secret").(map[string]interface{})
-	credential := sdk.ProviderCredential{
+	credential := credentials.ProviderCredential{
 		Type: d.Get("type").(string),
 		ID:   d.Get("name").(string),
 		Secret: sdk.Secret{
@@ -68,7 +69,7 @@ func parseProviderCredential(d *schema.ResourceData) *sdk.ProviderCredential {
 	return &credential
 }
 
-func saveCredentialProvider(d *schema.ResourceData, credential *sdk.ProviderCredential) error {
+func saveCredentialProvider(d *schema.ResourceData, credential *credentials.ProviderCredential) error {
 	d.SetId(credential.ID)
 
 	err := d.Set("name", credential.ID)
@@ -98,7 +99,7 @@ func saveCredentialProvider(d *schema.ResourceData, credential *sdk.ProviderCred
 func SetProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 
-	err := client.SetProviderCredentials(parseProviderCredential(d))
+	err := credentials.SetProviderCredentials(*client, parseProviderCredential(d))
 	if err != nil {
 		return err
 	}
@@ -113,7 +114,7 @@ func SetProviderCredential(d *schema.ResourceData, meta interface{}) error {
 
 func readProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	credential, err := client.GetProviderCredential(d.Get("name").(string))
+	credential, err := credentials.GetProviderCredential(*client, d.Get("name").(string))
 	if err != nil {
 		return err
 	}
@@ -123,5 +124,5 @@ func readProviderCredential(d *schema.ResourceData, meta interface{}) error {
 
 func deleteProviderCredential(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	return client.DeleteProviderCredential(d.Id())
+	return credentials.DeleteProviderCredential(*client, d.Id())
 }

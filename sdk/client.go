@@ -37,7 +37,7 @@ func (err ServerError) Error() string {
 	return fmt.Sprintf("code: %d - reason: %s", err.StatusCode, err.Err)
 }
 
-func (c *Client) newRequest(method, path string, body interface{}) (*http.Request, error) {
+func (c *Client) NewRequest(method, path string, body interface{}) (*http.Request, error) {
 	var buf io.ReadWriter
 	u := c.BaseURL.ResolveReference(&url.URL{Path: path})
 
@@ -67,7 +67,7 @@ func (c *Client) newRequest(method, path string, body interface{}) (*http.Reques
 	return req, nil
 }
 
-func (c *Client) do(req *http.Request, v interface{}) (*http.Response, error) {
+func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err

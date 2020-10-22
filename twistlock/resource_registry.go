@@ -1,11 +1,14 @@
 package twistlock
 
 import (
-	"github.com/Hivebrite/twistlock-go/sdk"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
 	"strings"
+
+	"github.com/Hivebrite/twistlock-go/sdk"
+	"github.com/Hivebrite/twistlock-go/sdk/credentials"
+	"github.com/Hivebrite/twistlock-go/sdk/registry"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceRegistrySettings() *schema.Resource {
@@ -114,29 +117,29 @@ func resourceRegistrySettings() *schema.Resource {
 	}
 }
 
-func parseRegistrySettings(d *schema.ResourceData, client *sdk.Client) (*sdk.RegistrySpecifications, error) {
-	spec := sdk.RegistrySpecifications{}
+func parseRegistrySettings(d *schema.ResourceData, client *sdk.Client) (*registry.Specifications, error) {
+	spec := registry.Specifications{}
 	settings := d.Get("registry").(*schema.Set)
 	for _, i := range settings.List() {
-		var providerCred *sdk.ProviderCredential
+		var providerCred *credentials.ProviderCredential
 		var err error
 		setting := i.(map[string]interface{})
-		credentialId := setting["credential"].(string)
+		credentialID := setting["credential"].(string)
 
-		if strings.Compare(credentialId, "") != 0 {
-			providerCred, err = client.GetProviderCredential(credentialId)
+		if strings.Compare(credentialID, "") != 0 {
+			providerCred, err = credentials.GetProviderCredential(*client, credentialID)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		if providerCred == nil {
-			providerCred = &sdk.ProviderCredential{}
+			providerCred = &credentials.ProviderCredential{}
 		}
 
-		spec.RegistrySettings = append(
-			spec.RegistrySettings,
-			sdk.RegistrySetting{
+		spec.Settings = append(
+			spec.Settings,
+			registry.Setting{
 				Version:        setting["version"].(string),
 				Registry:       setting["registry"].(string),
 				Repository:     setting["repository"].(string),
@@ -155,10 +158,10 @@ func parseRegistrySettings(d *schema.ResourceData, client *sdk.Client) (*sdk.Reg
 	return &spec, nil
 }
 
-func saveRegistrySettings(d *schema.ResourceData, spec *sdk.RegistrySpecifications) error {
-	specRegistryTf := make([]interface{}, 0, len(spec.RegistrySettings))
+func saveRegistrySettings(d *schema.ResourceData, spec *registry.Specifications) error {
+	specRegistryTf := make([]interface{}, 0, len(spec.Settings))
 
-	for _, i := range spec.RegistrySettings {
+	for _, i := range spec.Settings {
 		specRegistryTf = append(
 			specRegistryTf,
 			map[string]interface{}{
@@ -190,7 +193,7 @@ func createRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	err = client.SetRegistries(settings)
+	err = registry.SetRegistries(*client, settings)
 	if err != nil {
 		return err
 	}
@@ -200,7 +203,7 @@ func createRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 
 func readRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	registries, err := client.GetRegistries()
+	registries, err := registry.GetRegistries(*client)
 	if err != nil {
 		return err
 	}
@@ -210,7 +213,7 @@ func readRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 
 func deleteRegistrySettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.SetRegistries(&sdk.RegistrySpecifications{})
+	err := registry.SetRegistries(*client, &registry.Specifications{})
 	if err != nil {
 		return err
 	}

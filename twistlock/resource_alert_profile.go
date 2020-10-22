@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Hivebrite/twistlock-go/sdk"
+	"github.com/Hivebrite/twistlock-go/sdk/alerts"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/spf13/cast"
 )
@@ -160,16 +161,16 @@ func resourceAlertProfile() *schema.Resource {
 	}
 }
 
-func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
+func parseAlertProfile(d *schema.ResourceData) *alerts.Profile {
 	slackList := d.Get("slack").(*schema.Set).List()
 	webhookList := d.Get("webhook").(*schema.Set).List()
 	pagerdutyList := d.Get("pagerduty").(*schema.Set).List()
 	policyList := d.Get("policy").(*schema.Set).List()
 
-	slack := sdk.Slack{Enabled: false}
-	webhook := sdk.Webhook{Enabled: false}
-	pagerduty := sdk.Pagerduty{Enabled: false}
-	policy := sdk.Policy{}
+	slack := alerts.Slack{}
+	webhook := alerts.Webhook{}
+	pagerduty := alerts.Pagerduty{}
+	policy := alerts.Policy{}
 
 	if len(slackList) > 0 {
 		slackConfig := slackList[0].(map[string]interface{})
@@ -219,7 +220,7 @@ func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 		pagerduty.Enabled = pagerdutyConfig["enabled"].(bool)
 	}
 
-	return &sdk.AlertProfile{
+	return &alerts.Profile{
 		ID:        d.Get("name").(string),
 		Name:      d.Get("name").(string),
 		Slack:     slack,
@@ -229,7 +230,7 @@ func parseAlertProfile(d *schema.ResourceData) *sdk.AlertProfile {
 	}
 }
 
-func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) error {
+func saveAlertProfile(d *schema.ResourceData, alertProfile *alerts.Profile) error {
 	d.SetId(alertProfile.ID)
 
 	err := d.Set("name", alertProfile.ID)
@@ -318,7 +319,7 @@ func saveAlertProfile(d *schema.ResourceData, alertProfile *sdk.AlertProfile) er
 	return nil
 }
 
-func policyRuleToInterface(policyRule *sdk.PolicyRule) []map[string]interface{} {
+func policyRuleToInterface(policyRule *alerts.PolicyRule) []map[string]interface{} {
 	var policyRuleArray []map[string]interface{}
 	policyRuleArray = append(policyRuleArray, map[string]interface{}{
 		"all_rules": policyRule.AllRules,
@@ -329,9 +330,9 @@ func policyRuleToInterface(policyRule *sdk.PolicyRule) []map[string]interface{} 
 	return policyRuleArray
 }
 
-func policyRuleSchemaToInterface(policyRule interface{}) *sdk.PolicyRule {
+func policyRuleSchemaToInterface(policyRule interface{}) *alerts.PolicyRule {
 	policyRuleList := policyRule.(*schema.Set).List()
-	rule := sdk.PolicyRule{}
+	rule := alerts.PolicyRule{}
 	if len(policyRuleList) > 0 {
 		ruleRetyped := policyRuleList[0].(map[string]interface{})
 		rule.Enabled = ruleRetyped["enabled"].(bool)
@@ -343,7 +344,7 @@ func policyRuleSchemaToInterface(policyRule interface{}) *sdk.PolicyRule {
 
 func setAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.SetAlertProfiles(parseAlertProfile(d))
+	err := alerts.SetAlertProfiles(*client, parseAlertProfile(d))
 	if err != nil {
 		return err
 	}
@@ -358,7 +359,7 @@ func setAlertProfile(d *schema.ResourceData, meta interface{}) error {
 
 func readAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	alertProfile, err := client.GetAlertProfile(d.Get("name").(string))
+	alertProfile, err := alerts.GetAlertProfile(*client, d.Get("name").(string))
 
 	if err != nil {
 		return err
@@ -369,5 +370,5 @@ func readAlertProfile(d *schema.ResourceData, meta interface{}) error {
 
 func deleteAlertProfile(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	return client.DeleteAlertProfile(d.Id())
+	return alerts.DeleteAlertProfile(*client, d.Id())
 }

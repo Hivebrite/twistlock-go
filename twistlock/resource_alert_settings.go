@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Hivebrite/twistlock-go/sdk"
+	"github.com/Hivebrite/twistlock-go/sdk/alerts"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -37,14 +38,14 @@ func resourceAlertSettings() *schema.Resource {
 	}
 }
 
-func parseAlertSettings(d *schema.ResourceData) *sdk.AlertSettings {
+func parseAlertSettings(d *schema.ResourceData) *alerts.Settings {
 	d.SetId("config")
-	return &sdk.AlertSettings{
+	return &alerts.Settings{
 		AggregationPeriodMs: d.Get("aggregation_period_ms").(int),
 	}
 }
 
-func saveAlertSettings(d *schema.ResourceData, alertSettings *sdk.AlertSettings) error {
+func saveAlertSettings(d *schema.ResourceData, alertSettings *alerts.Settings) error {
 	err := d.Set("aggregation_period_ms", alertSettings.AggregationPeriodMs)
 	if err != nil {
 		log.Printf("[ERROR] aggregation_period_ms setting caused by: %s", err)
@@ -56,7 +57,7 @@ func saveAlertSettings(d *schema.ResourceData, alertSettings *sdk.AlertSettings)
 
 func SetAlertSettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.SetAlertSettings(parseAlertSettings(d))
+	err := alerts.SetAlertSettings(*client, parseAlertSettings(d))
 
 	if err != nil {
 		return err
@@ -72,7 +73,7 @@ func SetAlertSettings(d *schema.ResourceData, meta interface{}) error {
 
 func readAlertSettings(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	alertSettings, err := client.GetAlertSettings()
+	alertSettings, err := alerts.GetAlertSettings(*client)
 	if err != nil {
 		return err
 	}

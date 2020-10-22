@@ -1,9 +1,11 @@
 package twistlock
 
 import (
-	"github.com/Hivebrite/twistlock-go/sdk"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
+
+	"github.com/Hivebrite/twistlock-go/sdk"
+	"github.com/Hivebrite/twistlock-go/sdk/tag"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceTag() *schema.Resource {
@@ -57,46 +59,46 @@ func resourceTag() *schema.Resource {
 	}
 }
 
-func parseTag(d *schema.ResourceData) *sdk.Tag {
-	tag := sdk.Tag{
+func parseTag(d *schema.ResourceData) *tag.Tag {
+	objectTag := tag.Tag{
 		Name:  d.Get("name").(string),
 		Color: d.Get("color").(string),
-		Vulns: []sdk.Vulns{},
+		Vulns: []tag.Vuln{},
 	}
 
 	vulns := d.Get("vulns").(*schema.Set)
 	for _, i := range vulns.List() {
 		vuln := i.(map[string]interface{})
-		tag.Vulns = append(
-			tag.Vulns,
-			sdk.Vulns{
+		objectTag.Vulns = append(
+			objectTag.Vulns,
+			tag.Vuln{
 				ID:          vuln["id"].(string),
 				PackageName: vuln["package_name"].(string),
 				Comment:     vuln["comment"].(string),
 			})
 	}
 
-	return &tag
+	return &objectTag
 }
 
-func saveTag(d *schema.ResourceData, tag *sdk.Tag) error {
-	vulnTagTf := make([]interface{}, 0, len(tag.Vulns))
+func saveTag(d *schema.ResourceData, objectTag *tag.Tag) error {
+	vulnTagTf := make([]interface{}, 0, len(objectTag.Vulns))
 
-	d.SetId(tag.Name)
+	d.SetId(objectTag.Name)
 
-	err := d.Set("name", tag.Name)
+	err := d.Set("name", objectTag.Name)
 	if err != nil {
 		log.Printf("[ERROR] name setting caused by: %s", err)
 		return err
 	}
 
-	err = d.Set("color", tag.Color)
+	err = d.Set("color", objectTag.Color)
 	if err != nil {
 		log.Printf("[ERROR] color setting caused by: %s", err)
 		return err
 	}
 
-	for _, i := range tag.Vulns {
+	for _, i := range objectTag.Vulns {
 		vulnTagTf = append(
 			vulnTagTf,
 			map[string]interface{}{
@@ -107,7 +109,7 @@ func saveTag(d *schema.ResourceData, tag *sdk.Tag) error {
 		)
 	}
 
-	err = d.Set("vulns", tag.Vulns)
+	err = d.Set("vulns", objectTag.Vulns)
 	if err != nil {
 		log.Printf("[ERROR] vuln setting caused by: %s", err)
 		return err
@@ -119,7 +121,7 @@ func saveTag(d *schema.ResourceData, tag *sdk.Tag) error {
 func createTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 
-	err := client.CreateTag(parseTag(d))
+	err := tag.CreateTag(*client, parseTag(d))
 	if err != nil {
 		return err
 	}
@@ -134,7 +136,7 @@ func createTag(d *schema.ResourceData, meta interface{}) error {
 
 func readTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	tag, err := client.GetTag(d.Get("name").(string))
+	tag, err := tag.GetTag(*client, d.Get("name").(string))
 	if err != nil {
 		return err
 	}
@@ -144,7 +146,7 @@ func readTag(d *schema.ResourceData, meta interface{}) error {
 
 func updateTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.UpdateTag(d.Id(), parseTag(d))
+	err := tag.UpdateTag(*client, d.Id(), parseTag(d))
 	if err != nil {
 		return err
 	}
@@ -154,5 +156,5 @@ func updateTag(d *schema.ResourceData, meta interface{}) error {
 
 func deleteTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	return client.DeleteTag(d.Id())
+	return tag.DeleteTag(*client, d.Id())
 }
