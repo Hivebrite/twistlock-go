@@ -35,12 +35,13 @@ func Provider() terraform.ResourceProvider {
 		DataSourcesMap: map[string]*schema.Resource{},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"twistlock_waas_container":    resourceWaasContainer(),
-			"twistlock_registry_settings": resourceRegistrySettings(),
-			"twistlock_tag":               resourceTag(),
-			"twistlock_credential":        resourceCredentialProvider(),
-			"twistlock_alert_profile":     resourceAlertProfile(),
-			"twistlock_alert_settings":    resourceAlertSettings(),
+			"twistlock_waas_container":         resourceWaasContainer(),
+			"twistlock_registry_settings":      resourceRegistrySettings(),
+			"twistlock_tag":                    resourceTag(),
+			"twistlock_credential":             resourceCredentialProvider(),
+			"twistlock_alert_profile":          resourceAlertProfile(),
+			"twistlock_alert_settings":         resourceAlertSettings(),
+			"twistlock_vulnerability_policies": resourceVulnerabilityPolicies(),
 		},
 
 		ConfigureFunc: providerConfigure,
