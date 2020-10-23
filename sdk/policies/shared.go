@@ -37,9 +37,11 @@ const (
 )
 
 const (
-	EffectIgnore = "ignore"
-	EffectAlert  = "alert"
-	EffectBlock  = "block"
+	EffectIgnore  = "ignore"
+	EffectAlert   = "alert"
+	EffectBlock   = "block"
+	EffectPrevent = "prevent"
+	EffectDisable = "disable"
 )
 
 func AlertingLevelToInt(level string) int {

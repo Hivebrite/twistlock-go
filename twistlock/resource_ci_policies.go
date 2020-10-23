@@ -31,6 +31,10 @@ func resourceCiPolicies() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"effect": {
+							Computed: true,
+							Type:     schema.TypeString,
+						},
 						"name": {
 							Required:    true,
 							Type:        schema.TypeString,
@@ -90,6 +94,8 @@ func parseCiPolicies(d *schema.ResourceData) *policies.Ci {
 			AlertThreshold: *alertThresholdFromRule(rule),
 			BlockThreshold: *blockThresholdFromRule(rule),
 		}
+
+		ruleObject.ComputeEffect()
 
 		for _, j := range cveRules {
 			cveRule := j.(map[string]interface{})
@@ -174,6 +180,7 @@ func saveCiPolicies(d *schema.ResourceData, policiesObject *policies.Ci) error {
 					},
 				},
 				"verbose": i.Verbose,
+				"effect":  i.Effect,
 				"alert_threshold": []map[string]interface{}{
 					{
 						"disabled": i.AlertThreshold.Disabled,
@@ -231,7 +238,9 @@ func readCiPolicies(d *schema.ResourceData, meta interface{}) error {
 
 func deleteCiPolicies(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := policies.SetCi(*client, &policies.Ci{})
+	err := policies.SetCi(*client, &policies.Ci{
+		PolicyType: "ciImagesVulnerability",
+	})
 	if err != nil {
 		return err
 	}

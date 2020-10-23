@@ -1,6 +1,7 @@
 package policies
 
 import (
+	"strings"
 	"time"
 
 	"github.com/Hivebrite/twistlock-go/sdk"
@@ -56,4 +57,18 @@ func SetCi(c sdk.Client, policies *Ci) error {
 	}
 
 	return nil
+}
+
+func (rule *CiRules) ComputeEffect() {
+	effects := []string{}
+
+	if !rule.AlertThreshold.Disabled {
+		effects = append(effects, "alert")
+	}
+
+	if rule.BlockThreshold.Enabled {
+		effects = append(effects, "fail")
+	}
+
+	rule.Effect = strings.Join(effects, ", ")
 }
