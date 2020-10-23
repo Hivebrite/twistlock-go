@@ -2,10 +2,8 @@ package twistlock
 
 import (
 	"log"
-	"strings"
 
 	"github.com/Hivebrite/twistlock-go/sdk"
-	"github.com/Hivebrite/twistlock-go/sdk/credentials"
 	"github.com/Hivebrite/twistlock-go/sdk/registry"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -121,21 +119,7 @@ func parseRegistrySettings(d *schema.ResourceData, client *sdk.Client) (*registr
 	spec := registry.Specifications{}
 	settings := d.Get("registry").(*schema.Set)
 	for _, i := range settings.List() {
-		var providerCred *credentials.ProviderCredential
-		var err error
 		setting := i.(map[string]interface{})
-		credentialID := setting["credential"].(string)
-
-		if strings.Compare(credentialID, "") != 0 {
-			providerCred, err = credentials.Get(*client, credentialID)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		if providerCred == nil {
-			providerCred = &credentials.ProviderCredential{}
-		}
 
 		spec.Settings = append(
 			spec.Settings,
@@ -149,7 +133,7 @@ func parseRegistrySettings(d *schema.ResourceData, client *sdk.Client) (*registr
 				Hostname:       setting["hostname"].(string),
 				Scanners:       setting["scanners"].(int),
 				UseAWSRole:     setting["use_aws_role"].(bool),
-				Credential:     *providerCred,
+				CredentialID:   setting["credential"].(string),
 				RoleArn:        setting["role_arn"].(string),
 				VersionPattern: setting["version_pattern"].(string),
 			})
@@ -173,6 +157,7 @@ func saveRegistrySettings(d *schema.ResourceData, spec *registry.Specifications)
 				"cap":        i.Cap,
 				"hostname":   i.Hostname,
 				"scanners":   i.Scanners,
+				"credential": i.CredentialID,
 			})
 	}
 

@@ -2,7 +2,6 @@ package registry
 
 import (
 	"github.com/Hivebrite/twistlock-go/sdk"
-	"github.com/Hivebrite/twistlock-go/sdk/credentials"
 )
 
 type Specifications struct {
@@ -10,19 +9,19 @@ type Specifications struct {
 }
 
 type Setting struct {
-	Version        string                         `json:"version"`
-	Registry       string                         `json:"registry"`
-	Repository     string                         `json:"repository"`
-	Tag            string                         `json:"tag"`
-	Os             string                         `json:"os"`
-	Cap            int                            `json:"cap"`
-	Hostname       string                         `json:"hostname"`
-	Scanners       int                            `json:"scanners"`
-	Namespace      string                         `json:"namespace"`
-	UseAWSRole     bool                           `json:"useAWSRole"`
-	Credential     credentials.ProviderCredential `json:"credential"`
-	RoleArn        string                         `json:"roleArn"`
-	VersionPattern string                         `json:"versionPattern"`
+	Version        string `json:"version"`
+	Registry       string `json:"registry"`
+	Repository     string `json:"repository"`
+	Tag            string `json:"tag"`
+	Os             string `json:"os"`
+	Cap            int    `json:"cap"`
+	Hostname       string `json:"hostname"`
+	Scanners       int    `json:"scanners"`
+	Namespace      string `json:"namespace"`
+	UseAWSRole     bool   `json:"useAWSRole"`
+	CredentialID   string `json:"credentialID"`
+	RoleArn        string `json:"roleArn"`
+	VersionPattern string `json:"versionPattern"`
 }
 
 func Index(c sdk.Client) (*Specifications, error) {
