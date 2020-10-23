@@ -43,6 +43,27 @@ func alertProfilePolicySchema() *schema.Schema {
 	}
 }
 
+func policiesExpirationSchema() *schema.Schema {
+	return &schema.Schema{
+		Optional: true,
+		Type:     schema.TypeSet,
+		MinItems: 0,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"date": {
+					Optional: true,
+					Type:     schema.TypeString,
+				},
+				"enabled": {
+					Required: true,
+					Type:     schema.TypeBool,
+				},
+			},
+		},
+	}
+}
+
 func policiesTagsSchema() *schema.Schema {
 	model := &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -64,24 +85,7 @@ func policiesTagsSchema() *schema.Schema {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"expiration": {
-				Optional: true,
-				Type:     schema.TypeSet,
-				MinItems: 1,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"date": {
-							Optional: true,
-							Type:     schema.TypeString,
-						},
-						"enabled": {
-							Required: true,
-							Type:     schema.TypeBool,
-						},
-					},
-				},
-			},
+			"expiration": policiesExpirationSchema(),
 		},
 	}
 
@@ -115,24 +119,7 @@ func policiesCveRulesSchema() *schema.Schema {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"expiration": {
-				Optional: true,
-				Type:     schema.TypeSet,
-				MinItems: 1,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"date": {
-							Optional: true,
-							Type:     schema.TypeString,
-						},
-						"enabled": {
-							Required: true,
-							Type:     schema.TypeBool,
-						},
-					},
-				},
-			},
+			"expiration": policiesExpirationSchema(),
 		},
 	}
 
