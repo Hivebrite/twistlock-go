@@ -225,3 +225,27 @@ func policiesResourcesSchema(keys []string) *schema.Schema {
 		Elem:        model,
 	}
 }
+
+func listOfPortSchema() *schema.Schema {
+	var model = &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"start": {
+				Required:    true,
+				Type:        schema.TypeInt,
+				Description: "",
+			},
+			"end": {
+				Required:    true,
+				Type:        schema.TypeInt,
+				Description: "",
+			},
+		},
+	}
+
+	return &schema.Schema{
+		Optional:    true,
+		Type:        schema.TypeList,
+		Description: "",
+		Elem:        model,
+	}
+}

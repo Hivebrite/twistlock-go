@@ -37,6 +37,7 @@ const (
 )
 
 const (
+	EffectAllow   = "allow"
 	EffectIgnore  = "ignore"
 	EffectAlert   = "alert"
 	EffectBlock   = "block"
