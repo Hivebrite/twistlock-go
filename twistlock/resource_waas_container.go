@@ -4,12 +4,12 @@ import (
 	"log"
 
 	"github.com/Hivebrite/twistlock-go/sdk"
+	"github.com/Hivebrite/twistlock-go/sdk/waas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/spf13/cast"
 )
 
-// TODO(This resource create update correctly on prismacloud but at each run the change is trigger, we will investigate later on that)
 func resourceWaasContainer() *schema.Resource {
 	return &schema.Resource{
 		Create: createWaasContainer,
@@ -35,7 +35,7 @@ func resourceWaasContainer() *schema.Resource {
 				Default:     30000,
 			},
 			"rules": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -105,13 +105,14 @@ func resourceWaasContainer() *schema.Resource {
 						},
 						"applications_spec": {
 							Required:    true,
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Description: "firewalls rules to be applied to the resources",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"certificate": {
 										Type:        schema.TypeSet,
 										Optional:    true,
+										Computed:    true,
 										Description: "X509 Certificate",
 										MinItems:    1,
 										MaxItems:    1,
@@ -575,20 +576,20 @@ func resourceWaasContainer() *schema.Resource {
 	}
 }
 
-func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
-	waasSpec := sdk.Waas{}
+func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
+	waasSpec := waas.Waas{}
 	waasSpec.MaxPort = d.Get("max_port").(int)
 	waasSpec.MinPort = d.Get("min_port").(int)
-	rules := d.Get("rules").(*schema.Set).List()
+	rules := d.Get("rules").([]interface{})
 
 	for _, i := range rules {
 		rule := i.(map[string]interface{})
 		resources := rule["resources"].(*schema.Set).List()[0].(map[string]interface{})
-		applicationsSpec := rule["applications_spec"].(*schema.Set).List()
+		applicationsSpec := rule["applications_spec"].([]interface{})
 
-		ruleObject := sdk.Rule{
+		ruleObject := waas.Rule{
 			Name: rule["name"].(string),
-			Resources: sdk.Resources{
+			Resources: waas.Resources{
 				Hosts:      cast.ToStringSlice(resources["hosts"]),
 				Images:     cast.ToStringSlice(resources["images"]),
 				Labels:     cast.ToStringSlice(resources["labels"]),
@@ -610,11 +611,11 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 			body := fetchOptionalMapFromSetParam(applicationSpec, "body")
 			headers := fetchOptionalMapFromSetParam(applicationSpec, "header_specs")
 
-			var headersSpecs []sdk.HeaderSpec
+			var headersSpecs []waas.HeaderSpec
 			for _, headerSpec := range headers {
 				h := headerSpec.(map[string]interface{})
 				headersSpecs = append(headersSpecs,
-					sdk.HeaderSpec{
+					waas.HeaderSpec{
 						Allow:    h["allow"].(bool),
 						Required: h["required"].(bool),
 						Effect:   h["effect"].(string),
@@ -623,11 +624,11 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 					})
 			}
 
-			var endpoints []sdk.Endpoint
+			var endpoints []waas.Endpoint
 			for _, endpoint := range apiSpec["endpoints"].(*schema.Set).List() {
 				e := endpoint.(map[string]interface{})
 				endpoints = append(endpoints,
-					sdk.Endpoint{
+					waas.Endpoint{
 						ExposedPort:  e["exposed_port"].(int),
 						InternalPort: e["internal_port"].(int),
 						Host:         e["host"].(string),
@@ -639,8 +640,8 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 
 			ruleObject.ApplicationsSpec = append(
 				ruleObject.ApplicationsSpec,
-				sdk.ApplicationSpec{
-					Certificate: sdk.Certificate{
+				waas.ApplicationSpec{
+					Certificate: waas.Certificate{
 						Encrypted: func() string {
 							if certificate["encrypted"] == nil {
 								return ""
@@ -649,11 +650,12 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 							return certificate["encrypted"].(string)
 						}(),
 					},
-					APISpec: sdk.ApiSpec{
+
+					APISpec: waas.ApiSpec{
 						Endpoints: endpoints,
 						Effect:    "disable",
 					},
-					NetworkControls: sdk.NetworkControls{
+					NetworkControls: waas.NetworkControls{
 						AllowedSubnets:           cast.ToStringSlice(networkControls["allowed_subnets"]),
 						AdvancedProtectionEffect: networkControls["advanced_protection_effect"].(string),
 						DeniedSubnetsEffect:      networkControls["denied_subnets_effect"].(string),
@@ -663,21 +665,21 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 						AllowedCountriesEffect:   networkControls["allowed_countries_effect"].(string),
 						AllowedCountries:         cast.ToStringSlice(networkControls["allowed_countries"]),
 					},
-					Libinject: sdk.LibInject{
+					Libinject: waas.LibInject{
 						SqliEffect: libInject["sqli_effect"].(string),
 						XSSEffect:  libInject["xss_effect"].(string),
 					},
-					Body: sdk.Body{
+					Body: waas.Body{
 						Skip:                body["skip"].(bool),
 						InspectionSizeBytes: body["inspection_size_bytes"].(int),
 					},
-					IntelGathering: sdk.IntelGathering{
+					IntelGathering: waas.IntelGathering{
 						BruteforceEnabled:         intelGathering["bruteforce_enabled"].(bool),
 						TrackErrorsEnabled:        intelGathering["track_errors_enabled"].(bool),
 						InfoLeakageEffect:         intelGathering["info_leakage_effect"].(string),
 						RemoveFingerprintsEnabled: intelGathering["remove_fingerprints_enabled"].(bool),
 					},
-					MaliciousUpload: sdk.MaliciousUpload{
+					MaliciousUpload: waas.MaliciousUpload{
 						Effect:            maliciousUpload["effect"].(string),
 						AllowedFileTypes:  cast.ToStringSlice(maliciousUpload["allowed_file_types"]),
 						AllowedExtensions: cast.ToStringSlice(maliciousUpload["allowed_extensions"]),
@@ -705,10 +707,10 @@ func parseWaasContainer(d *schema.ResourceData) *sdk.Waas {
 	return &waasSpec
 }
 
-func saveWaasContainer(d *schema.ResourceData, waas *sdk.Waas) error {
-	waasRules := make([]interface{}, 0, len(waas.Rules))
+func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
+	waasRules := make([]interface{}, 0, len(waasObject.Rules))
 
-	for _, i := range waas.Rules {
+	for _, i := range waasObject.Rules {
 		var applicationsSpec []map[string]interface{}
 
 		for _, applicationSpec := range i.ApplicationsSpec {
@@ -743,6 +745,7 @@ func saveWaasContainer(d *schema.ResourceData, waas *sdk.Waas) error {
 						"encrypted": applicationSpec.Certificate.Encrypted,
 					},
 				},
+
 				"api_spec": []map[string]interface{}{
 					{
 						"endpoints": endpoints,
@@ -825,13 +828,13 @@ func saveWaasContainer(d *schema.ResourceData, waas *sdk.Waas) error {
 		return err
 	}
 
-	errMaxPort := d.Set("max_port", waas.MaxPort)
+	errMaxPort := d.Set("max_port", waasObject.MaxPort)
 	if errMaxPort != nil {
 		log.Printf("[ERROR] max_port caused by: %s", errMaxPort)
 		return errMaxPort
 	}
 
-	errMinPort := d.Set("min_port", waas.MinPort)
+	errMinPort := d.Set("min_port", waasObject.MinPort)
 	if errMinPort != nil {
 		log.Printf("[ERROR] min_port caused by: %s", errMinPort)
 		return errMinPort
@@ -842,7 +845,7 @@ func saveWaasContainer(d *schema.ResourceData, waas *sdk.Waas) error {
 
 func createWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.SetWaasRules(parseWaasContainer(d))
+	err := waas.Set(*client, parseWaasContainer(d))
 	if err != nil {
 		return err
 	}
@@ -852,7 +855,7 @@ func createWaasContainer(d *schema.ResourceData, meta interface{}) error {
 
 func readWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	waasRules, err := client.GetWaasRules()
+	waasRules, err := waas.Index(*client)
 	if err != nil {
 		return err
 	}
@@ -862,7 +865,7 @@ func readWaasContainer(d *schema.ResourceData, meta interface{}) error {
 
 func deleteWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := client.SetRegistries(&sdk.RegistrySpecifications{})
+	err := waas.Set(*client, &waas.Waas{})
 	if err != nil {
 		return err
 	}

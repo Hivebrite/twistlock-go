@@ -1,11 +1,13 @@
-package sdk
+package alerts
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/Hivebrite/twistlock-go/sdk"
 )
 
-type AlertProfile struct {
+type Profile struct {
 	Name            string          `json:"name"`
 	PreviousName    string          `json:"previousName"`
 	ID              string          `json:"_id"`
@@ -72,10 +74,10 @@ type SecurityAdvisor struct {
 	TokenURL     string `json:"tokenURL"`
 }
 type Pagerduty struct {
-	Enabled    bool   `json:"enabled"`
-	RoutingKey Secret `json:"routingKey"`
-	Summary    string `json:"summary"`
-	Severity   string `json:"severity"`
+	Enabled    bool       `json:"enabled"`
+	RoutingKey sdk.Secret `json:"routingKey"`
+	Summary    string     `json:"summary"`
+	Severity   string     `json:"severity"`
 }
 type Webhook struct {
 	CredentialID string `json:"credentialId"`
@@ -113,14 +115,14 @@ type Jira struct {
 	} `json:"assignee"`
 }
 
-func (c *Client) GetAlertProfiles() ([]AlertProfile, error) {
-	req, err := c.newRequest("GET", "alert-profiles", nil)
+func Index(c sdk.Client) ([]Profile, error) {
+	req, err := c.NewRequest("GET", "alert-profiles", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	alertProfiles := []AlertProfile{}
-	_, err = c.do(req, &alertProfiles)
+	alertProfiles := []Profile{}
+	_, err = c.Do(req, &alertProfiles)
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +130,8 @@ func (c *Client) GetAlertProfiles() ([]AlertProfile, error) {
 	return alertProfiles, nil
 }
 
-func (c *Client) GetAlertProfile(alertProfileName string) (*AlertProfile, error) {
-	resp, err := c.GetAlertProfiles()
+func Get(c sdk.Client, alertProfileName string) (*Profile, error) {
+	resp, err := Index(c)
 	if err != nil {
 		return nil, err
 	}
@@ -143,13 +145,13 @@ func (c *Client) GetAlertProfile(alertProfileName string) (*AlertProfile, error)
 	return nil, fmt.Errorf("alertProfile: %s not found", alertProfileName)
 }
 
-func (c *Client) SetAlertProfiles(spec *AlertProfile) error {
-	req, err := c.newRequest("POST", "alert-profiles", spec)
+func Set(c sdk.Client, spec *Profile) error {
+	req, err := c.NewRequest("POST", "alert-profiles", spec)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.do(req, nil)
+	_, err = c.Do(req, nil)
 	if err != nil {
 		return err
 	}
@@ -157,13 +159,13 @@ func (c *Client) SetAlertProfiles(spec *AlertProfile) error {
 	return nil
 }
 
-func (c *Client) DeleteAlertProfile(alertProfileName string) error {
-	req, err := c.newRequest("DELETE", fmt.Sprintf("alert-profiles/%s", alertProfileName), nil)
+func Delete(c sdk.Client, alertProfileName string) error {
+	req, err := c.NewRequest("DELETE", fmt.Sprintf("alert-profiles/%s", alertProfileName), nil)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.do(req, nil)
+	_, err = c.Do(req, nil)
 	if err != nil {
 		return err
 	}
