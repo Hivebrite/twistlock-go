@@ -9,12 +9,12 @@ import (
 	"github.com/spf13/cast"
 )
 
-func resourceImagePolicies() *schema.Resource {
+func resourceCiPolicies() *schema.Resource {
 	return &schema.Resource{
-		Create: createImagePolicies,
-		Read:   readImagePolicies,
-		Update: createImagePolicies,
-		Delete: deleteImagePolicies,
+		Create: createCiPolicies,
+		Read:   readCiPolicies,
+		Update: createCiPolicies,
+		Delete: deleteCiPolicies,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -46,13 +46,7 @@ func resourceImagePolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Description: "",
 						},
-						"resources": policiesResourcesSchema([]string{"hosts", "images", "labels", "containers", "namespaces", "account_ids", "clusters"}),
-						"block_msg": {
-							Computed:    true,
-							Optional:    true,
-							Type:        schema.TypeString,
-							Description: "",
-						},
+						"resources": policiesResourcesSchema([]string{"images", "labels"}),
 						"verbose": {
 							Computed:    true,
 							Optional:    true,
@@ -75,10 +69,10 @@ func resourceImagePolicies() *schema.Resource {
 	}
 }
 
-func parseImagePolicies(d *schema.ResourceData) *policies.Images {
-	policiesObject := policies.Images{
-		PolicyType: "containerVulnerability",
-		ID:         "containerVulnerability",
+func parseCiPolicies(d *schema.ResourceData) *policies.Ci {
+	policiesObject := policies.Ci{
+		PolicyType: "ciImagesVulnerability",
+		ID:         "ciImagesVulnerability",
 	}
 
 	rules := d.Get("rules").([]interface{})
@@ -89,19 +83,13 @@ func parseImagePolicies(d *schema.ResourceData) *policies.Images {
 		tags := rule["tags"].(*schema.Set).List()
 		cveRules := rule["cve_rules"].(*schema.Set).List()
 
-		ruleObject := policies.ImageRules{
+		ruleObject := policies.CiRules{
 			Name:      rule["name"].(string),
 			OnlyFixed: rule["only_fixed"].(bool),
-			Resources: policies.ImageResources{
-				Hosts:      cast.ToStringSlice(resources["hosts"]),
-				Images:     cast.ToStringSlice(resources["images"]),
-				Labels:     cast.ToStringSlice(resources["labels"]),
-				Containers: cast.ToStringSlice(resources["containers"]),
-				Namespaces: cast.ToStringSlice(resources["namespaces"]),
-				AccountIDs: cast.ToStringSlice(resources["account_ids"]),
-				Clusters:   cast.ToStringSlice(resources["clusters"]),
+			Resources: policies.CiResources{
+				Images: cast.ToStringSlice(resources["images"]),
+				Labels: cast.ToStringSlice(resources["labels"]),
 			},
-			BlockMsg:       rule["block_msg"].(string),
 			Verbose:        rule["verbose"].(bool),
 			AlertThreshold: *alertThresholdFromRule(rule),
 			BlockThreshold: *blockThresholdFromRule(rule),
@@ -136,7 +124,7 @@ func parseImagePolicies(d *schema.ResourceData) *policies.Images {
 	return &policiesObject
 }
 
-func saveImagePolicies(d *schema.ResourceData, policiesObject *policies.Images) error {
+func saveCiPolicies(d *schema.ResourceData, policiesObject *policies.Ci) error {
 	rules := make([]interface{}, 0, len(policiesObject.Rules))
 
 	for _, i := range policiesObject.Rules {
@@ -187,18 +175,12 @@ func saveImagePolicies(d *schema.ResourceData, policiesObject *policies.Images) 
 
 				"resources": []map[string]interface{}{
 					{
-						"hosts":       i.Resources.Hosts,
-						"images":      i.Resources.Images,
-						"labels":      i.Resources.Labels,
-						"containers":  i.Resources.Containers,
-						"namespaces":  i.Resources.Namespaces,
-						"account_ids": i.Resources.AccountIDs,
-						"clusters":    i.Resources.Clusters,
+						"images": i.Resources.Images,
+						"labels": i.Resources.Labels,
 					},
 				},
-				"block_msg": i.BlockMsg,
-				"verbose":   i.Verbose,
-				"effect":    i.Effect,
+				"verbose": i.Verbose,
+				"effect":  i.Effect,
 				"alert_threshold": []map[string]interface{}{
 					{
 						"disabled": i.AlertThreshold.Disabled,
@@ -218,7 +200,7 @@ func saveImagePolicies(d *schema.ResourceData, policiesObject *policies.Images) 
 		)
 	}
 
-	d.SetId("containerVulnerability")
+	d.SetId("ciImagesVulnerability")
 
 	err := d.Set("rules", rules)
 	if err != nil {
@@ -234,30 +216,30 @@ func saveImagePolicies(d *schema.ResourceData, policiesObject *policies.Images) 
 	return nil
 }
 
-func createImagePolicies(d *schema.ResourceData, meta interface{}) error {
+func createCiPolicies(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := policies.SetImages(*client, parseImagePolicies(d))
+	err := policies.SetCi(*client, parseCiPolicies(d))
 	if err != nil {
 		return err
 	}
 
-	return readImagePolicies(d, meta)
+	return readCiPolicies(d, meta)
 }
 
-func readImagePolicies(d *schema.ResourceData, meta interface{}) error {
+func readCiPolicies(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	policies, err := policies.GetImages(*client)
+	policies, err := policies.GetCi(*client)
 	if err != nil {
 		return err
 	}
 
-	return saveImagePolicies(d, policies)
+	return saveCiPolicies(d, policies)
 }
 
-func deleteImagePolicies(d *schema.ResourceData, meta interface{}) error {
+func deleteCiPolicies(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := policies.SetImages(*client, &policies.Images{
-		PolicyType: "containerVulnerability",
+	err := policies.SetCi(*client, &policies.Ci{
+		PolicyType: "ciImagesVulnerability",
 	})
 	if err != nil {
 		return err

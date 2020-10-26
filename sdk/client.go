@@ -3,6 +3,7 @@ package sdk
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -101,3 +102,5 @@ func NewClient(apiUrl string) (*Client, error) {
 		httpClient: http.DefaultClient,
 	}, nil
 }
+
+var ObjectNotFoundError = errors.New("object not found")
