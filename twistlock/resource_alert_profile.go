@@ -165,7 +165,7 @@ func parseAlertProfile(d *schema.ResourceData) *alerts.Profile {
 	slackList := d.Get("slack").(*schema.Set).List()
 	webhookList := d.Get("webhook").(*schema.Set).List()
 	pagerdutyList := d.Get("pagerduty").(*schema.Set).List()
-	policyList := d.Get("policy").(*schema.Set).List()
+	policyList := d.Get("policy").([]interface{})
 
 	slack := alerts.Slack{}
 	webhook := alerts.Webhook{}
