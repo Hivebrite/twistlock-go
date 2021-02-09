@@ -6,7 +6,6 @@ import (
 	"github.com/Hivebrite/twistlock-go/sdk"
 	"github.com/Hivebrite/twistlock-go/sdk/policies"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/spf13/cast"
 )
 
 func resourceCiPolicies() *schema.Resource {
@@ -46,7 +45,7 @@ func resourceCiPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Description: "",
 						},
-						"resources": policiesResourcesSchema([]string{"images", "labels"}),
+						"collections": collectionSchema(),
 						"verbose": {
 							Computed:    true,
 							Optional:    true,
@@ -79,17 +78,14 @@ func parseCiPolicies(d *schema.ResourceData) *policies.Ci {
 
 	for _, i := range rules {
 		rule := i.(map[string]interface{})
-		resources := rule["resources"].(*schema.Set).List()[0].(map[string]interface{})
 		tags := rule["tags"].(*schema.Set).List()
 		cveRules := rule["cve_rules"].(*schema.Set).List()
 
 		ruleObject := policies.CiRules{
-			Name:      rule["name"].(string),
-			OnlyFixed: rule["only_fixed"].(bool),
-			Resources: policies.CiResources{
-				Images: cast.ToStringSlice(resources["images"]),
-				Labels: cast.ToStringSlice(resources["labels"]),
-			},
+			Name:        rule["name"].(string),
+			OnlyFixed:   rule["only_fixed"].(bool),
+			Collections: parseCollections(rule["collections"].(*schema.Set).List()),
+
 			Verbose:        rule["verbose"].(bool),
 			AlertThreshold: *alertThresholdFromRule(rule),
 			BlockThreshold: *blockThresholdFromRule(rule),
@@ -170,17 +166,11 @@ func saveCiPolicies(d *schema.ResourceData, policiesObject *policies.Ci) error {
 		rules = append(
 			rules,
 			map[string]interface{}{
-				"name":       i.Name,
-				"only_fixed": i.OnlyFixed,
-
-				"resources": []map[string]interface{}{
-					{
-						"images": i.Resources.Images,
-						"labels": i.Resources.Labels,
-					},
-				},
-				"verbose": i.Verbose,
-				"effect":  i.Effect,
+				"name":        i.Name,
+				"only_fixed":  i.OnlyFixed,
+				"collections": collectionSliceToInterface(i.Collections),
+				"verbose":     i.Verbose,
+				"effect":      i.Effect,
 				"alert_threshold": []map[string]interface{}{
 					{
 						"disabled": i.AlertThreshold.Disabled,

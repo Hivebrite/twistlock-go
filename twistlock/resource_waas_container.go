@@ -54,81 +54,8 @@ func resourceWaasContainer() *schema.Resource {
 							Type:        schema.TypeString,
 							Description: "",
 						},
-						"collections": {
-							Type:        schema.TypeSet,
-							Required:    true,
-							Description: "",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"hosts": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"images": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"labels": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"containers": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"namespaces": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"account_ids": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"clusters": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"name": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "Name of the collection",
-									},
-									"description": {
-										Computed:    true,
-										Type:        schema.TypeString,
-										Description: "",
-									},
-								},
-							},
-						},
+						"collections": collectionSchema(),
+
 						"applications_spec": {
 							Required:    true,
 							Type:        schema.TypeList,
@@ -875,17 +802,7 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 			Name: rule["name"].(string),
 		}
 
-		var collectionsList []waas.Collection
-
-		for _, collection := range rule["collections"].(*schema.Set).List() {
-			c := collection.(map[string]interface{})
-			collectionsList = append(collectionsList,
-				waas.Collection{
-					Name: c["name"].(string),
-				})
-		}
-
-		ruleObject.Collections = collectionsList
+		ruleObject.Collections = parseCollections(rule["collections"].(*schema.Set).List())
 
 		for _, j := range applicationsSpec {
 			applicationSpec := j.(map[string]interface{})
@@ -1269,15 +1186,7 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 			})
 		}
 
-		var collections []map[string]interface{}
-
-		for _, collection := range i.Collections {
-			collections = append(collections,
-				map[string]interface{}{
-					"name": collection.Name,
-				},
-			)
-		}
+		collections := collectionSliceToInterface(i.Collections)
 
 		waasRules = append(
 			waasRules,

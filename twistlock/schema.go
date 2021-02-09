@@ -198,31 +198,81 @@ func policiesAlertThresholdSchema() *schema.Schema {
 	}
 }
 
-func policiesResourcesSchema(keys []string) *schema.Schema {
-	ruleSchema := map[string]*schema.Schema{}
-
-	for _, i := range keys {
-		ruleSchema[i] = &schema.Schema{
-			Required:    true,
-			Type:        schema.TypeList,
-			Description: "",
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-		}
-	}
-
-	var model = &schema.Resource{
-		Schema: ruleSchema,
-	}
-
+func collectionSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:        schema.TypeSet,
 		Required:    true,
 		Description: "",
-		MinItems:    1,
-		MaxItems:    1,
-		Elem:        model,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"hosts": {
+					Computed:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"images": {
+					Computed:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"labels": {
+					Computed:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"containers": {
+					Computed:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"namespaces": {
+					Computed:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"account_ids": {
+					Computed:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"clusters": {
+					Computed:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"name": {
+					Required:    true,
+					Type:        schema.TypeString,
+					Description: "Name of the collection",
+				},
+				"description": {
+					Computed:    true,
+					Type:        schema.TypeString,
+					Description: "",
+				},
+			},
+		},
 	}
 }
 
