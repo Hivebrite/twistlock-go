@@ -45,6 +45,8 @@ func Provider() terraform.ResourceProvider {
 			"twistlock_ci_policies":                resourceCiPolicies(),
 			"twistlock_runtime_container_policies": resourceRuntimeContainerPolicies(),
 			"twistlock_runtime_custom_rule":        resourceRuntimeCustomRule(),
+			"twistlock_subnet":                     resourceSubnet(),
+			"twistlock_collection":                 resourceCollection(),
 		},
 
 		ConfigureFunc: providerConfigure,

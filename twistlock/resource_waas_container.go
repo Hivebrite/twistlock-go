@@ -10,6 +10,16 @@ import (
 	"github.com/spf13/cast"
 )
 
+const (
+	Ban     = "ban"
+	Alert   = "alert"
+	Prevent = "prevent"
+	Disable = "disable"
+)
+
+var waaf_effects = []string{Ban, Alert, Prevent, Disable}
+var http_effects = []string{Alert, Prevent}
+
 func resourceWaasContainer() *schema.Resource {
 	return &schema.Resource{
 		Create: createWaasContainer,
@@ -44,16 +54,14 @@ func resourceWaasContainer() *schema.Resource {
 							Type:        schema.TypeString,
 							Description: "",
 						},
-						"resources": {
+						"collections": {
 							Type:        schema.TypeSet,
 							Required:    true,
 							Description: "",
-							MinItems:    1,
-							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"hosts": {
-										Required:    true,
+										Computed:    true,
 										Type:        schema.TypeList,
 										Description: "",
 										Elem: &schema.Schema{
@@ -61,7 +69,7 @@ func resourceWaasContainer() *schema.Resource {
 										},
 									},
 									"images": {
-										Required:    true,
+										Computed:    true,
 										Type:        schema.TypeList,
 										Description: "",
 										Elem: &schema.Schema{
@@ -69,7 +77,7 @@ func resourceWaasContainer() *schema.Resource {
 										},
 									},
 									"labels": {
-										Required:    true,
+										Computed:    true,
 										Type:        schema.TypeList,
 										Description: "",
 										Elem: &schema.Schema{
@@ -77,7 +85,7 @@ func resourceWaasContainer() *schema.Resource {
 										},
 									},
 									"containers": {
-										Required:    true,
+										Computed:    true,
 										Type:        schema.TypeList,
 										Description: "",
 										Elem: &schema.Schema{
@@ -85,7 +93,7 @@ func resourceWaasContainer() *schema.Resource {
 										},
 									},
 									"namespaces": {
-										Required:    true,
+										Computed:    true,
 										Type:        schema.TypeList,
 										Description: "",
 										Elem: &schema.Schema{
@@ -93,12 +101,30 @@ func resourceWaasContainer() *schema.Resource {
 										},
 									},
 									"account_ids": {
-										Required:    true,
+										Computed:    true,
 										Type:        schema.TypeList,
 										Description: "",
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
+									},
+									"clusters": {
+										Computed:    true,
+										Type:        schema.TypeList,
+										Description: "",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"name": {
+										Required:    true,
+										Type:        schema.TypeString,
+										Description: "Name of the collection",
+									},
+									"description": {
+										Computed:    true,
+										Type:        schema.TypeString,
+										Description: "",
 									},
 								},
 							},
@@ -109,6 +135,12 @@ func resourceWaasContainer() *schema.Resource {
 							Description: "firewalls rules to be applied to the resources",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"ban_duration_minutes": {
+										Optional:    true,
+										Type:        schema.TypeInt,
+										Description: "",
+										Default:     5,
+									},
 									"certificate": {
 										Type:        schema.TypeSet,
 										Optional:    true,
@@ -122,6 +154,90 @@ func resourceWaasContainer() *schema.Resource {
 													Required:    true,
 													Type:        schema.TypeString,
 													Description: "Day",
+												},
+											},
+										},
+									},
+									"dos_config": {
+										Type:        schema.TypeSet,
+										Required:    true,
+										Description: "DoS Rules",
+										MinItems:    1,
+										MaxItems:    1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"effect": {
+													Optional:    true,
+													Type:        schema.TypeString,
+													Description: "",
+													Default:     Disable,
+													ValidateFunc: validation.StringInSlice(
+														[]string{
+															Alert,
+															Ban,
+															Disable,
+														},
+														false,
+													),
+												},
+												"track_session": {
+													Optional:    true,
+													Type:        schema.TypeBool,
+													Description: "",
+												},
+												"burst_rate": {
+													Optional:    true,
+													Type:        schema.TypeInt,
+													Description: "",
+												},
+												"average_rate": {
+													Optional:    true,
+													Type:        schema.TypeInt,
+													Description: "",
+												},
+												"match_conditions": {
+													Type:        schema.TypeList,
+													Optional:    true,
+													Description: "",
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"methods": {
+																Required:    true,
+																Type:        schema.TypeList,
+																Description: "",
+																Elem: &schema.Schema{
+																	Type: schema.TypeString,
+																},
+															},
+															"file_types": {
+																Optional:    true,
+																Type:        schema.TypeList,
+																Description: "",
+																Elem: &schema.Schema{
+																	Type: schema.TypeString,
+																},
+															},
+															"response_code_ranges": {
+																Type:        schema.TypeList,
+																Required:    true,
+																Description: "",
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"start": {
+																			Required:    true,
+																			Type:        schema.TypeInt,
+																			Description: "",
+																		},
+																		"end": {
+																			Optional:    true,
+																			Type:        schema.TypeInt,
+																			Description: "",
+																		},
+																	},
+																},
+															},
+														},
+													},
 												},
 											},
 										},
@@ -174,6 +290,323 @@ func resourceWaasContainer() *schema.Resource {
 														},
 													},
 												},
+												// effect,
+												// fallback_effect,
+												// paths,
+											},
+										},
+									},
+									"bot_protection_spec": {
+										Type:        schema.TypeSet,
+										Required:    true,
+										Description: "Bots description",
+										MinItems:    1,
+										MaxItems:    1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"user_defined_bots": {
+													Type:        schema.TypeList,
+													Optional:    true,
+													Description: "",
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"name": {
+																Optional:    true,
+																Type:        schema.TypeString,
+																Description: "",
+															},
+															"header_name": {
+																Optional:    true,
+																Type:        schema.TypeString,
+																Description: "",
+															},
+															"header_values": {
+																Optional:    true,
+																Type:        schema.TypeList,
+																Description: "",
+																Elem: &schema.Schema{
+																	Type: schema.TypeString,
+																},
+															},
+															"subnets": {
+																Optional:    true,
+																Type:        schema.TypeList,
+																Description: "",
+																Elem: &schema.Schema{
+																	Type: schema.TypeString,
+																},
+															},
+															"effect": {
+																Optional:    true,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	[]string{
+																		"allow",
+																		"alert",
+																		"prevent",
+																		"ban",
+																	},
+																	false,
+																),
+															},
+														},
+													},
+												},
+												"known_bot_protections_spec": {
+													Type:        schema.TypeSet,
+													Required:    true,
+													Description: "",
+													MinItems:    1,
+													MaxItems:    1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"search_engine_crawlers": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"business_analytics": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"educational": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"news": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"financial": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"content_feed_clients": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"archiving": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"career_search": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"media_search": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+														},
+													},
+												},
+												"unknown_bot_protections_spec": {
+													Type:        schema.TypeSet,
+													Required:    true,
+													Description: "",
+													MinItems:    1,
+													MaxItems:    1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"generic": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"web_automation_tools": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"web_scrapers": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"api_libraries": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"http_libraries": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"bot_impersonation": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"browser_impersonation": {
+																Optional:    true,
+																Default:     Disable,
+																Type:        schema.TypeString,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+															"request_anomalies": {
+																Required:    true,
+																Type:        schema.TypeSet,
+																Description: "",
+																MinItems:    1,
+																MaxItems:    1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"threshold": {
+																			Optional:    true,
+																			Type:        schema.TypeInt,
+																			Description: "",
+																			ValidateFunc: validation.IntInSlice(
+																				[]int{
+																					3, 6, 9,
+																				},
+																			),
+																		},
+																		"effect": {
+																			Optional:    true,
+																			Type:        schema.TypeString,
+																			Description: "",
+																			Default:     Disable,
+																			ValidateFunc: validation.StringInSlice(
+																				waaf_effects, false,
+																			),
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+												"session_validation": {
+													Optional:    true,
+													Type:        schema.TypeString,
+													Default:     Disable,
+													Description: "",
+													ValidateFunc: validation.StringInSlice(
+														waaf_effects,
+														false,
+													),
+												},
+												"interstitial_page": {
+													Optional:    true,
+													Type:        schema.TypeBool,
+													Description: "",
+												},
+												"js_injection_spec": {
+													Type:        schema.TypeSet,
+													Required:    true,
+													Description: "",
+													MinItems:    1,
+													MaxItems:    1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"enabled": {
+																Optional:    true,
+																Default:     false,
+																Type:        schema.TypeBool,
+																Description: "",
+															},
+															"timeout_effect": {
+																Optional:    true,
+																Type:        schema.TypeString,
+																Default:     Disable,
+																Description: "",
+																ValidateFunc: validation.StringInSlice(
+																	waaf_effects,
+																	false,
+																),
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -191,12 +624,7 @@ func resourceWaasContainer() *schema.Resource {
 													Description: "",
 													Default:     "alert",
 													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
+														waaf_effects,
 														false,
 													),
 												},
@@ -206,12 +634,7 @@ func resourceWaasContainer() *schema.Resource {
 													Description: "",
 													Default:     "alert",
 													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
+														http_effects,
 														false,
 													),
 												},
@@ -221,12 +644,7 @@ func resourceWaasContainer() *schema.Resource {
 													Description: "",
 													Default:     "alert",
 													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
+														http_effects,
 														false,
 													),
 												},
@@ -236,12 +654,7 @@ func resourceWaasContainer() *schema.Resource {
 													Description: "",
 													Default:     "alert",
 													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
+														http_effects,
 														false,
 													),
 												},
@@ -280,45 +693,6 @@ func resourceWaasContainer() *schema.Resource {
 											},
 										},
 									},
-									"libinject": {
-										Required:    true,
-										Type:        schema.TypeSet,
-										Description: "",
-										MinItems:    1,
-										MaxItems:    1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"sqli_effect": {
-													Required:    true,
-													Type:        schema.TypeString,
-													Description: "",
-													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
-														false,
-													),
-												},
-												"xss_effect": {
-													Required:    true,
-													Type:        schema.TypeString,
-													Description: "",
-													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
-														false,
-													),
-												},
-											},
-										},
-									},
 									"body": {
 										Type:        schema.TypeSet,
 										Optional:    true,
@@ -342,6 +716,47 @@ func resourceWaasContainer() *schema.Resource {
 											},
 										},
 									},
+									"header_specs": {
+										Type:        schema.TypeSet,
+										Optional:    true,
+										Description: "",
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"allow": {
+													Type:        schema.TypeBool,
+													Optional:    true,
+													Description: "",
+												},
+												"required": {
+													Type:        schema.TypeBool,
+													Optional:    true,
+													Description: "",
+												},
+												"effect": {
+													Type:        schema.TypeString,
+													Optional:    true,
+													Description: "",
+													ValidateFunc: validation.StringInSlice(
+														http_effects,
+														false,
+													),
+												},
+												"name": {
+													Type:        schema.TypeString,
+													Optional:    true,
+													Description: "",
+												},
+												"values": {
+													Type:        schema.TypeList,
+													Optional:    true,
+													Description: "",
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
+										},
+									},
 									"intel_gathering": {
 										Type:        schema.TypeSet,
 										Required:    true,
@@ -350,30 +765,13 @@ func resourceWaasContainer() *schema.Resource {
 										MaxItems:    1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"bruteforce_enabled": {
-													Optional:    true,
-													Default:     true,
-													Type:        schema.TypeBool,
-													Description: "",
-												},
-												"track_errors_enabled": {
-													Optional:    true,
-													Default:     true,
-													Type:        schema.TypeBool,
-													Description: "",
-												},
 												"info_leakage_effect": {
 													Optional:    true,
 													Default:     "alert",
 													Type:        schema.TypeString,
 													Description: "",
 													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
+														waaf_effects,
 														false,
 													),
 												},
@@ -400,12 +798,7 @@ func resourceWaasContainer() *schema.Resource {
 													Type:        schema.TypeString,
 													Description: "",
 													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"ban",
-															"alert",
-															"prevent",
-															"disable",
-														},
+														waaf_effects,
 														false,
 													),
 												},
@@ -428,90 +821,6 @@ func resourceWaasContainer() *schema.Resource {
 											},
 										},
 									},
-									"attack_tools_effect": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "",
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												"ban",
-												"alert",
-												"prevent",
-												"disable",
-											},
-											false,
-										),
-									},
-									"shellshock_effect": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "",
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												"ban",
-												"alert",
-												"prevent",
-												"disable",
-											},
-											false,
-										),
-									},
-									"malformed_req_effect": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "",
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												"ban",
-												"alert",
-												"prevent",
-												"disable",
-											},
-											false,
-										),
-									},
-									"cmdi_effect": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "",
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												"ban",
-												"alert",
-												"prevent",
-												"disable",
-											},
-											false,
-										),
-									},
-									"lfi_effect": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "",
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												"ban",
-												"alert",
-												"prevent",
-												"disable",
-											},
-											false,
-										),
-									},
-									"code_injection_effect": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "",
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												"ban",
-												"alert",
-												"prevent",
-												"disable",
-											},
-											false,
-										),
-									},
 									"csrf_enabled": {
 										Required:    true,
 										Type:        schema.TypeBool,
@@ -522,50 +831,26 @@ func resourceWaasContainer() *schema.Resource {
 										Type:        schema.TypeBool,
 										Description: "",
 									},
-									"header_specs": {
-										Type:        schema.TypeSet,
+									"session_cookie_enabled": {
 										Optional:    true,
+										Default:     false,
+										Type:        schema.TypeBool,
 										Description: "",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"allow": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "",
-												},
-												"required": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "",
-												},
-												"effect": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "",
-													ValidateFunc: validation.StringInSlice(
-														[]string{
-															"alert",
-															"prevent",
-														},
-														false,
-													),
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "",
-												},
-												"values": {
-													Type:        schema.TypeList,
-													Optional:    true,
-													Description: "",
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-													},
-												},
-											},
-										},
 									},
+									"session_cookie_ban": {
+										Optional:    true,
+										Default:     false,
+										Type:        schema.TypeBool,
+										Description: "",
+									},
+									"sqli":           applicationSpecEffectsSchema(),
+									"xss":            applicationSpecEffectsSchema(),
+									"attack_tools":   applicationSpecEffectsSchema(),
+									"shellshock":     applicationSpecEffectsSchema(),
+									"malformed_req":  applicationSpecEffectsSchema(),
+									"cmdi":           applicationSpecEffectsSchema(),
+									"lfi":            applicationSpecEffectsSchema(),
+									"code_injection": applicationSpecEffectsSchema(),
 								},
 							},
 						},
@@ -584,32 +869,45 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 
 	for _, i := range rules {
 		rule := i.(map[string]interface{})
-		resources := rule["resources"].(*schema.Set).List()[0].(map[string]interface{})
 		applicationsSpec := rule["applications_spec"].([]interface{})
 
 		ruleObject := waas.Rule{
 			Name: rule["name"].(string),
-			Resources: waas.Resources{
-				Hosts:      cast.ToStringSlice(resources["hosts"]),
-				Images:     cast.ToStringSlice(resources["images"]),
-				Labels:     cast.ToStringSlice(resources["labels"]),
-				Containers: cast.ToStringSlice(resources["containers"]),
-				Namespaces: cast.ToStringSlice(resources["namespaces"]),
-				AccountIDs: cast.ToStringSlice(resources["account_ids"]),
-			},
 		}
+
+		var collectionsList []waas.Collection
+
+		for _, collection := range rule["collections"].(*schema.Set).List() {
+			c := collection.(map[string]interface{})
+			collectionsList = append(collectionsList,
+				waas.Collection{
+					Name: c["name"].(string),
+				})
+		}
+
+		ruleObject.Collections = collectionsList
 
 		for _, j := range applicationsSpec {
 			applicationSpec := j.(map[string]interface{})
 
 			certificate := fetchOptionalMapFromSetParam(applicationSpec, "certificate")
-			libInject := fetchOptionalMapFromSetParam(applicationSpec, "libinject")
-			intelGathering := fetchOptionalMapFromSetParam(applicationSpec, "intel_gathering")
-			networkControls := fetchOptionalMapFromSetParam(applicationSpec, "network_controls")
+			dosConfig := fetchOptionalMapFromSetParam(applicationSpec, "dos_config")
 			apiSpec := fetchOptionalMapFromSetParam(applicationSpec, "api_spec")
-			maliciousUpload := fetchOptionalMapFromSetParam(applicationSpec, "malicious_upload")
+			botProtectionSpec := fetchOptionalMapFromSetParam(applicationSpec, "bot_protection_spec")
+			networkControls := fetchOptionalMapFromSetParam(applicationSpec, "network_controls")
 			body := fetchOptionalMapFromSetParam(applicationSpec, "body")
 			headers := fetchOptionalMapFromSetParam(applicationSpec, "header_specs")
+			intelGathering := fetchOptionalMapFromSetParam(applicationSpec, "intel_gathering")
+			maliciousUpload := fetchOptionalMapFromSetParam(applicationSpec, "malicious_upload")
+			sqli := fetchOptionalMapFromSetParam(applicationSpec, "sqli")
+			xss := fetchOptionalMapFromSetParam(applicationSpec, "xss")
+			attackTools := fetchOptionalMapFromSetParam(applicationSpec, "attack_tools")
+			shellshock := fetchOptionalMapFromSetParam(applicationSpec, "shellshock")
+			malformedReq := fetchOptionalMapFromSetParam(applicationSpec, "malformed_req")
+			cmdi := fetchOptionalMapFromSetParam(applicationSpec, "cmdi")
+			lfi := fetchOptionalMapFromSetParam(applicationSpec, "lfi")
+			codeInjection := fetchOptionalMapFromSetParam(applicationSpec, "code_injection")
+			// remoteHostForwarding := fetchOptionalMapFromSetParam(applicationSpec, "remote_host_forwarding")
 
 			var headersSpecs []waas.HeaderSpec
 			for _, headerSpec := range headers {
@@ -623,6 +921,61 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 						Values:   cast.ToStringSlice(h["values"]),
 					})
 			}
+
+			botProtectionObject := waas.BotProtectionSpec{}
+
+			botProtectionObject.InterstitialPage = botProtectionSpec["interstitial_page"].(bool)
+			botProtectionObject.SessionValidation = botProtectionSpec["session_validation"].(string)
+
+			jsInjectionSpec := fetchOptionalMapFromSetParam(botProtectionSpec, "js_injection_spec")
+
+			botProtectionObject.JsInjectionSpec = waas.JsInjectionSpec{
+				Enabled:       jsInjectionSpec["enabled"].(bool),
+				TimeoutEffect: jsInjectionSpec["timeout_effect"].(string),
+			}
+
+			knownBotProtection := fetchOptionalMapFromSetParam(botProtectionSpec, "known_bot_protections_spec")
+			botProtectionObject.KnownBotProtectionsSpec = waas.KnownBotProtectionsSpec{
+				SearchEngineCrawlers: knownBotProtection["search_engine_crawlers"].(string),
+				BusinessAnalytics:    knownBotProtection["business_analytics"].(string),
+				Educational:          knownBotProtection["educational"].(string),
+				News:                 knownBotProtection["news"].(string),
+				Financial:            knownBotProtection["financial"].(string),
+				ContentFeedClients:   knownBotProtection["content_feed_clients"].(string),
+				Archiving:            knownBotProtection["archiving"].(string),
+				CareerSearch:         knownBotProtection["career_search"].(string),
+				MediaSearch:          knownBotProtection["media_search"].(string),
+			}
+
+			unknownBotProtection := fetchOptionalMapFromSetParam(botProtectionSpec, "unknown_bot_protections_spec")
+			requestAnomalies := fetchOptionalMapFromSetParam(unknownBotProtection, "request_anomalies")
+			botProtectionObject.UnknownBotProtectionsSpec = waas.UnknownBotProtectionSpec{
+				Generic:              unknownBotProtection["generic"].(string),
+				WebAutomationTools:   unknownBotProtection["web_automation_tools"].(string),
+				WebScrapers:          unknownBotProtection["web_scrapers"].(string),
+				APILibraries:         unknownBotProtection["api_libraries"].(string),
+				HTTPLibraries:        unknownBotProtection["http_libraries"].(string),
+				BotImpersonation:     unknownBotProtection["bot_impersonation"].(string),
+				BrowserImpersonation: unknownBotProtection["browser_impersonation"].(string),
+				RequestAnomalies: waas.RequestAnomalies{
+					Threshold: requestAnomalies["threshold"].(int),
+					Effect:    requestAnomalies["effect"].(string),
+				},
+			}
+
+			var userDefinedBots []waas.UserDefinedBot
+			for _, userDefinedBot := range botProtectionSpec["user_defined_bots"].([]interface{}) {
+				botSpec := userDefinedBot.(map[string]interface{})
+				userDefinedBots = append(userDefinedBots,
+					waas.UserDefinedBot{
+						Name:         botSpec["name"].(string),
+						HeaderName:   botSpec["header_name"].(string),
+						HeaderValues: botSpec["header_values"].([]string),
+						Subnets:      botSpec["subnets"].([]string),
+						Effect:       botSpec["effect"].(string),
+					})
+			}
+			botProtectionObject.UserDefinedBots = userDefinedBots
 
 			var endpoints []waas.Endpoint
 			for _, endpoint := range apiSpec["endpoints"].(*schema.Set).List() {
@@ -638,6 +991,27 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 					})
 			}
 
+			var dosConditions []waas.MatchConditions
+
+			if len(dosConfig["match_conditions"].([]interface{})) > 0 {
+				for _, matchConditions := range dosConfig["match_conditions"].([]map[string]interface{}) {
+					var responseCodeRanges []waas.ResponseCodeRange
+					for _, codeRange := range matchConditions["response_code_ranges"].([]map[string]interface{}) {
+						responseCodeRanges = append(responseCodeRanges,
+							waas.ResponseCodeRange{
+								Start: codeRange["start"].(int),
+								End:   codeRange["end"].(int),
+							})
+					}
+					dosConditions = append(dosConditions,
+						waas.MatchConditions{
+							Methods:            matchConditions["mmatchConditionsethods"].([]string),
+							FileTypes:          matchConditions["FileTypematchConditions"].([]string),
+							ResponseCodeRanges: responseCodeRanges,
+						})
+				}
+			}
+
 			ruleObject.ApplicationsSpec = append(
 				ruleObject.ApplicationsSpec,
 				waas.ApplicationSpec{
@@ -651,9 +1025,10 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 						}(),
 					},
 
-					APISpec: waas.ApiSpec{
-						Endpoints: endpoints,
-						Effect:    "disable",
+					APISpec: waas.APISpec{
+						Endpoints:      endpoints,
+						Effect:         "disable",
+						FallbackEffect: "disable",
 					},
 					NetworkControls: waas.NetworkControls{
 						AllowedSubnets:           cast.ToStringSlice(networkControls["allowed_subnets"]),
@@ -665,17 +1040,19 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 						AllowedCountriesEffect:   networkControls["allowed_countries_effect"].(string),
 						AllowedCountries:         cast.ToStringSlice(networkControls["allowed_countries"]),
 					},
-					Libinject: waas.LibInject{
-						SqliEffect: libInject["sqli_effect"].(string),
-						XSSEffect:  libInject["xss_effect"].(string),
-					},
+					Sqli:          *applicationSpecEffectsFromInterface(sqli),
+					XSS:           *applicationSpecEffectsFromInterface(xss),
+					AttackTools:   *applicationSpecEffectsFromInterface(attackTools),
+					Shellshock:    *applicationSpecEffectsFromInterface(shellshock),
+					MalformedReq:  *applicationSpecEffectsFromInterface(malformedReq),
+					Cmdi:          *applicationSpecEffectsFromInterface(cmdi),
+					Lfi:           *applicationSpecEffectsFromInterface(lfi),
+					CodeInjection: *applicationSpecEffectsFromInterface(codeInjection),
 					Body: waas.Body{
 						Skip:                body["skip"].(bool),
 						InspectionSizeBytes: body["inspection_size_bytes"].(int),
 					},
 					IntelGathering: waas.IntelGathering{
-						BruteforceEnabled:         intelGathering["bruteforce_enabled"].(bool),
-						TrackErrorsEnabled:        intelGathering["track_errors_enabled"].(bool),
 						InfoLeakageEffect:         intelGathering["info_leakage_effect"].(string),
 						RemoveFingerprintsEnabled: intelGathering["remove_fingerprints_enabled"].(bool),
 					},
@@ -684,15 +1061,21 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 						AllowedFileTypes:  cast.ToStringSlice(maliciousUpload["allowed_file_types"]),
 						AllowedExtensions: cast.ToStringSlice(maliciousUpload["allowed_extensions"]),
 					},
-					AttackToolsEffect:   applicationSpec["attack_tools_effect"].(string),
-					ShellshockEffect:    applicationSpec["shellshock_effect"].(string),
-					MalformedReqEffect:  applicationSpec["malformed_req_effect"].(string),
-					CmdiEffect:          applicationSpec["cmdi_effect"].(string),
-					LfiEffect:           applicationSpec["lfi_effect"].(string),
-					CodeInjectionEffect: applicationSpec["code_injection_effect"].(string),
-					CsrfEnabled:         applicationSpec["csrf_enabled"].(bool),
-					ClickjackingEnabled: applicationSpec["clickjacking_enabled"].(bool),
-					HeaderSpecs:         headersSpecs,
+					CsrfEnabled:          applicationSpec["csrf_enabled"].(bool),
+					BanDurationMinutes:   applicationSpec["ban_duration_minutes"].(int),
+					ClickjackingEnabled:  applicationSpec["clickjacking_enabled"].(bool),
+					SessionCookieEnabled: applicationSpec["session_cookie_enabled"].(bool),
+					SessionCookieBan:     applicationSpec["session_cookie_ban"].(bool),
+					HeaderSpecs:          headersSpecs,
+					DosConfig: waas.DosConfig{
+						Effect:          dosConfig["effect"].(string),
+						BurstRate:       dosConfig["burst_rate"].(int),
+						TrackSession:    dosConfig["track_session"].(bool),
+						AverageRate:     dosConfig["average_rate"].(int),
+						MatchConditions: dosConditions,
+					},
+					BotProtectionSpec: botProtectionObject,
+					// remoteHostForwarding
 				},
 			)
 
@@ -739,16 +1122,99 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 				})
 			}
 
+			var dosConditions []map[string]interface{}
+			for _, dosCondition := range applicationSpec.DosConfig.MatchConditions {
+
+				var codeRanges []map[string]interface{}
+				for _, codeRange := range dosCondition.ResponseCodeRanges {
+					codeRanges = append(codeRanges, map[string]interface{}{
+						"start": codeRange.Start,
+						"end":   codeRange.End,
+					})
+				}
+				dosConditions = append(dosConditions, map[string]interface{}{
+					"methods":              dosCondition.Methods,
+					"file_types":           dosCondition.FileTypes,
+					"response_code_ranges": codeRanges,
+				})
+			}
+
+			botProtectionSpec := applicationSpec.BotProtectionSpec
+
+			userDefinedBotsObject := botProtectionSpec.UserDefinedBots
+			var userDefinedBots []map[string]interface{}
+			for _, userDefinedBotObject := range userDefinedBotsObject {
+				userDefinedBots = append(userDefinedBots, map[string]interface{}{
+					"name":          userDefinedBotObject.Name,
+					"header_name":   userDefinedBotObject.HeaderName,
+					"header_values": userDefinedBotObject.HeaderValues,
+					"subnets":       userDefinedBotObject.Subnets,
+					"effect":        userDefinedBotObject.Effect,
+				})
+			}
+
+			knownBotProtectionsSpec := botProtectionSpec.KnownBotProtectionsSpec
+			unknownBotProtectionsSpec := botProtectionSpec.UnknownBotProtectionsSpec
+			jsInjectionSpec := botProtectionSpec.JsInjectionSpec
 			applicationsSpec = append(applicationsSpec, map[string]interface{}{
 				"certificate": []map[string]interface{}{
 					{
 						"encrypted": applicationSpec.Certificate.Encrypted,
 					},
 				},
-
+				"dos_config": []map[string]interface{}{
+					{
+						"track_session":    applicationSpec.DosConfig.TrackSession,
+						"effect":           applicationSpec.DosConfig.Effect,
+						"burst_rate":       applicationSpec.DosConfig.BurstRate,
+						"average_rate":     applicationSpec.DosConfig.AverageRate,
+						"match_conditions": dosConditions,
+					},
+				},
 				"api_spec": []map[string]interface{}{
 					{
 						"endpoints": endpoints,
+					},
+				},
+				"bot_protection_spec": []map[string]interface{}{
+					{
+						"user_defined_bots": userDefinedBots,
+						"known_bot_protections_spec": []map[string]interface{}{
+							{
+								"search_engine_crawlers": knownBotProtectionsSpec.SearchEngineCrawlers,
+								"business_analytics":     knownBotProtectionsSpec.BusinessAnalytics,
+								"educational":            knownBotProtectionsSpec.Educational,
+								"news":                   knownBotProtectionsSpec.News,
+								"financial":              knownBotProtectionsSpec.Financial,
+								"content_feed_clients":   knownBotProtectionsSpec.ContentFeedClients,
+								"archiving":              knownBotProtectionsSpec.Archiving,
+								"career_search":          knownBotProtectionsSpec.CareerSearch,
+								"media_search":           knownBotProtectionsSpec.MediaSearch,
+							},
+						},
+						"unknown_bot_protections_spec": []map[string]interface{}{
+							{
+								"generic":               unknownBotProtectionsSpec.Generic,
+								"web_automation_tools":  unknownBotProtectionsSpec.WebAutomationTools,
+								"web_scrapers":          unknownBotProtectionsSpec.WebScrapers,
+								"api_libraries":         unknownBotProtectionsSpec.APILibraries,
+								"http_libraries":        unknownBotProtectionsSpec.HTTPLibraries,
+								"bot_impersonation":     unknownBotProtectionsSpec.BotImpersonation,
+								"browser_impersonation": unknownBotProtectionsSpec.BrowserImpersonation,
+								"request_anomalies": []map[string]interface{}{
+									{
+										"threshold": unknownBotProtectionsSpec.RequestAnomalies.Threshold,
+										"effect":    unknownBotProtectionsSpec.RequestAnomalies.Effect,
+									},
+								},
+							},
+						},
+						"js_injection_spec": []map[string]interface{}{
+							{
+								"enabled":        jsInjectionSpec.Enabled,
+								"timeout_effect": jsInjectionSpec.TimeoutEffect,
+							},
+						},
 					},
 				},
 				"network_controls": []map[string]interface{}{
@@ -763,22 +1229,15 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 						"allowed_countries":          applicationSpec.NetworkControls.AllowedCountries,
 					},
 				},
-				"libinject": []map[string]interface{}{
-					{
-						"sqli_effect": applicationSpec.Libinject.SqliEffect,
-						"xss_effect":  applicationSpec.Libinject.XSSEffect,
-					},
-				},
 				"body": []map[string]interface{}{
 					{
 						"skip":                  applicationSpec.Body.Skip,
 						"inspection_size_bytes": applicationSpec.Body.InspectionSizeBytes,
 					},
 				},
+				"header_specs": headerSpecs,
 				"intel_gathering": []map[string]interface{}{
 					{
-						"bruteforce_enabled":          applicationSpec.IntelGathering.BruteforceEnabled,
-						"track_errors_enabled":        applicationSpec.IntelGathering.TrackErrorsEnabled,
 						"info_leakage_effect":         applicationSpec.IntelGathering.InfoLeakageEffect,
 						"remove_fingerprints_enabled": applicationSpec.IntelGathering.RemoveFingerprintsEnabled,
 					},
@@ -790,32 +1249,41 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 						"allowed_extensions": applicationSpec.MaliciousUpload.AllowedExtensions,
 					},
 				},
-				"attack_tools_effect":   applicationSpec.AttackToolsEffect,
-				"shellshock_effect":     applicationSpec.ShellshockEffect,
-				"malformed_req_effect":  applicationSpec.MalformedReqEffect,
-				"cmdi_effect":           applicationSpec.CmdiEffect,
-				"lfi_effect":            applicationSpec.LfiEffect,
-				"code_injection_effect": applicationSpec.CodeInjectionEffect,
-				"csrf_enabled":          applicationSpec.CsrfEnabled,
-				"clickjacking_enabled":  applicationSpec.ClickjackingEnabled,
-				"header_specs":          headerSpecs,
+
+				"sqli":           *applicationSpecEffectsFromObject(applicationSpec.Sqli),
+				"xss":            *applicationSpecEffectsFromObject(applicationSpec.XSS),
+				"attack_tools":   *applicationSpecEffectsFromObject(applicationSpec.AttackTools),
+				"shellshock":     *applicationSpecEffectsFromObject(applicationSpec.Shellshock),
+				"malformed_req":  *applicationSpecEffectsFromObject(applicationSpec.MalformedReq),
+				"cmdi":           *applicationSpecEffectsFromObject(applicationSpec.Cmdi),
+				"lfi":            *applicationSpecEffectsFromObject(applicationSpec.Lfi),
+				"code_injection": *applicationSpecEffectsFromObject(applicationSpec.CodeInjection),
+
+				"csrf_enabled":           applicationSpec.CsrfEnabled,
+				"clickjacking_enabled":   applicationSpec.ClickjackingEnabled,
+				"session_cookie_enabled": applicationSpec.SessionCookieEnabled,
+				"session_cookie_ban":     applicationSpec.SessionCookieBan,
+				"ban_duration_minutes":   applicationSpec.BanDurationMinutes,
+				// "remote_host_forwarding":,
+
 			})
+		}
+
+		var collections []map[string]interface{}
+
+		for _, collection := range i.Collections {
+			collections = append(collections,
+				map[string]interface{}{
+					"name": collection.Name,
+				},
+			)
 		}
 
 		waasRules = append(
 			waasRules,
 			map[string]interface{}{
-				"name": i.Name,
-				"resources": []map[string]interface{}{
-					{
-						"hosts":       i.Resources.Hosts,
-						"images":      i.Resources.Images,
-						"labels":      i.Resources.Labels,
-						"containers":  i.Resources.Containers,
-						"namespaces":  i.Resources.Namespaces,
-						"account_ids": i.Resources.AccountIDs,
-					},
-				},
+				"name":              i.Name,
+				"collections":       collections,
 				"applications_spec": applicationsSpec,
 			})
 	}
@@ -871,4 +1339,101 @@ func deleteWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func applicationSpecEffectsFromInterface(applicationSpecEffects map[string]interface{}) *waas.ApplicationSpecEffects {
+	log.Printf("[ERROR] rules caused by: %s", applicationSpecEffects)
+
+	applicationSpecObject := waas.ApplicationSpecEffects{}
+	if applicationSpecEffects["effect"] != nil {
+		applicationSpecObject.Effect = applicationSpecEffects["effect"].(string)
+	}
+
+	var exceptionFields []waas.ExceptionFields
+
+	if applicationSpecEffects["exception_fields"] != nil {
+		for _, exceptionField := range applicationSpecEffects["exception_fields"].([]interface{}) {
+			field := exceptionField.(map[string]interface{})
+			exceptionFields = append(exceptionFields,
+				waas.ExceptionFields{
+					Location: field["effect"].(string),
+					Key:      field["key"].(string),
+				})
+		}
+	}
+
+	applicationSpecObject.ExceptionFields = exceptionFields
+
+	return &applicationSpecObject
+}
+
+func applicationSpecEffectsFromObject(appSpec waas.ApplicationSpecEffects) *[]map[string]interface{} {
+
+	var exceptionFields []map[string]interface{}
+	for _, i := range appSpec.ExceptionFields {
+		exceptionFields = append(exceptionFields,
+			map[string]interface{}{
+				"location": i.Location,
+				"key":      i.Key,
+			})
+	}
+
+	return &[]map[string]interface{}{
+		{
+			"effect":           appSpec.Effect,
+			"exception_fields": exceptionFields,
+		},
+	}
+}
+
+func applicationSpecEffectsSchema() *schema.Schema {
+	model := &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"effect": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice(
+					waaf_effects,
+					false),
+			},
+			"exception_fields": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"location": {
+							Optional:    true,
+							Type:        schema.TypeString,
+							Description: "",
+							ValidateFunc: validation.StringInSlice(
+								[]string{
+									"query",
+									"body",
+									"cookie",
+									"header",
+									"JSONPath",
+									"XMLPath",
+								},
+								false,
+							),
+						},
+						"key": {
+							Required:    true,
+							Type:        schema.TypeString,
+							Description: "",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return &schema.Schema{
+		Optional:    true,
+		Computed:    true,
+		Type:        schema.TypeSet,
+		Description: "application spec effects",
+		Elem:        model,
+	}
 }
