@@ -1095,7 +1095,10 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 				},
 				"bot_protection_spec": []map[string]interface{}{
 					{
-						"user_defined_bots": userDefinedBots,
+						"user_defined_bots":  userDefinedBots,
+						"session_validation": botProtectionSpec.SessionValidation,
+						"interstitial_page":  botProtectionSpec.InterstitialPage,
+
 						"known_bot_protections_spec": []map[string]interface{}{
 							{
 								"search_engine_crawlers": knownBotProtectionsSpec.SearchEngineCrawlers,

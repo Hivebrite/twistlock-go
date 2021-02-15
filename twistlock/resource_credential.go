@@ -27,6 +27,11 @@ func resourceCredentialProvider() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
+			"account_id": {
+				Type:        schema.TypeString,
+				Description: "ID of the onboarded account (if using onboarded PC account)",
+				Optional:    true,
+			},
 			"secret": {
 				Type:        schema.TypeMap,
 				Optional:    true,
@@ -40,6 +45,12 @@ func resourceCredentialProvider() *schema.Resource {
 						},
 					},
 				},
+			},
+			"external": {
+				Optional:    true,
+				Type:        schema.TypeBool,
+				Description: "",
+				Default:     false,
 			},
 			"type": {
 				Type:        schema.TypeString,
@@ -58,12 +69,16 @@ func resourceCredentialProvider() *schema.Resource {
 
 func parseProviderCredential(d *schema.ResourceData) *credentials.ProviderCredential {
 	secret := d.Get("secret").(map[string]interface{})
+	secretObject := sdk.Secret{}
+	if secret["plain"] != nil {
+		secretObject.Plain = secret["plain"].(string)
+	}
 	credential := credentials.ProviderCredential{
-		Type: d.Get("type").(string),
-		ID:   d.Get("name").(string),
-		Secret: sdk.Secret{
-			Plain: secret["plain"].(string),
-		},
+		Type:      d.Get("type").(string),
+		ID:        d.Get("name").(string),
+		AccountID: d.Get("account_id").(string),
+		External:  d.Get("external").(bool),
+		Secret:    secretObject,
 	}
 
 	return &credential
@@ -81,6 +96,18 @@ func saveCredentialProvider(d *schema.ResourceData, credential *credentials.Prov
 	err = d.Set("type", credential.Type)
 	if err != nil {
 		log.Printf("[ERROR] type setting caused by: %s", err)
+		return err
+	}
+
+	err = d.Set("external", credential.External)
+	if err != nil {
+		log.Printf("[ERROR] external setting caused by: %s", err)
+		return err
+	}
+
+	err = d.Set("account_id", credential.AccountID)
+	if err != nil {
+		log.Printf("[ERROR] account_id setting caused by: %s", err)
 		return err
 	}
 

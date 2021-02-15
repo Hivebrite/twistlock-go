@@ -78,6 +78,7 @@ func resourceCollection() *schema.Resource {
 				},
 			},
 			"name": {
+				ForceNew:    true,
 				Required:    true,
 				Type:        schema.TypeString,
 				Description: "Name of the collection",
