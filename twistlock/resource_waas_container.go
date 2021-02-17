@@ -129,7 +129,7 @@ func resourceWaasContainer() *schema.Resource {
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"methods": {
-																Required:    true,
+																Optional:    true,
 																Type:        schema.TypeList,
 																Description: "",
 																Elem: &schema.Schema{
@@ -146,7 +146,7 @@ func resourceWaasContainer() *schema.Resource {
 															},
 															"response_code_ranges": {
 																Type:        schema.TypeList,
-																Required:    true,
+																Optional:    true,
 																Description: "",
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -911,19 +911,32 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 			var dosConditions []waas.MatchConditions
 
 			if len(dosConfig["match_conditions"].([]interface{})) > 0 {
-				for _, matchConditions := range dosConfig["match_conditions"].([]map[string]interface{}) {
+				for _, matchConditionsInterface := range dosConfig["match_conditions"].([]interface{}) {
+					matchConditions := matchConditionsInterface.(map[string]interface{})
 					var responseCodeRanges []waas.ResponseCodeRange
-					for _, codeRange := range matchConditions["response_code_ranges"].([]map[string]interface{}) {
+					for _, codeRangeInterface := range matchConditions["response_code_ranges"].([]interface{}) {
+						codeRange := codeRangeInterface.(map[string]interface{})
 						responseCodeRanges = append(responseCodeRanges,
 							waas.ResponseCodeRange{
 								Start: codeRange["start"].(int),
 								End:   codeRange["end"].(int),
 							})
 					}
+
+					var methods []string
+					for _, method := range matchConditions["methods"].([]interface{}) {
+						methods = append(methods, method.(string))
+					}
+
+					var fileTypes []string
+					for _, fileType := range matchConditions["file_types"].([]interface{}) {
+						fileTypes = append(fileTypes, fileType.(string))
+					}
+
 					dosConditions = append(dosConditions,
 						waas.MatchConditions{
-							Methods:            matchConditions["mmatchConditionsethods"].([]string),
-							FileTypes:          matchConditions["FileTypematchConditions"].([]string),
+							Methods:            methods,
+							FileTypes:          fileTypes,
 							ResponseCodeRanges: responseCodeRanges,
 						})
 				}
