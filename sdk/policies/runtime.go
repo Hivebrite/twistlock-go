@@ -11,14 +11,7 @@ type Runtime struct {
 	Rules            []RuntimeRules `json:"rules"`
 	LearningDisabled bool           `json:"learningDisabled"`
 }
-type RuntimeResources struct {
-	Hosts      []string `json:"hosts"`
-	Images     []string `json:"images"`
-	Labels     []string `json:"labels"`
-	Containers []string `json:"containers"`
-	Namespaces []string `json:"namespaces"`
-	AccountIDs []string `json:"accountIDs"`
-}
+
 type Processes struct {
 	Effect               string   `json:"effect"`
 	Blacklist            []string `json:"blacklist"`
@@ -68,7 +61,7 @@ type RuntimeRules struct {
 	Name                     string           `json:"name"`
 	Notes                    string           `json:"notes"`
 	PreviousName             string           `json:"previousName"`
-	Resources                RuntimeResources `json:"resources"`
+	Collections              []sdk.Collection `json:"collections"`
 	AdvancedProtection       bool             `json:"advancedProtection"`
 	Processes                Processes        `json:"processes"`
 	Network                  Network          `json:"network"`

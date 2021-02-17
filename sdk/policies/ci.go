@@ -17,19 +17,19 @@ type CiResources struct {
 	Labels []string `json:"labels"`
 }
 type CiRules struct {
-	Modified       time.Time      `json:"modified"`
-	Owner          string         `json:"owner"`
-	Name           string         `json:"name"`
-	PreviousName   string         `json:"previousName"`
-	Effect         string         `json:"effect"`
-	Resources      CiResources    `json:"resources"`
-	Verbose        bool           `json:"verbose,omitempty"`
-	AlertThreshold AlertThreshold `json:"alertThreshold"`
-	BlockThreshold BlockThreshold `json:"blockThreshold"`
-	CveRules       []CveRules     `json:"cveRules,omitempty"`
-	Tags           []Tags         `json:"tags,omitempty"`
-	GraceDays      int            `json:"graceDays"`
-	OnlyFixed      bool           `json:"onlyFixed"`
+	Modified       time.Time        `json:"modified"`
+	Owner          string           `json:"owner"`
+	Name           string           `json:"name"`
+	PreviousName   string           `json:"previousName"`
+	Effect         string           `json:"effect"`
+	Collections    []sdk.Collection `json:"collections"`
+	Verbose        bool             `json:"verbose,omitempty"`
+	AlertThreshold AlertThreshold   `json:"alertThreshold"`
+	BlockThreshold BlockThreshold   `json:"blockThreshold"`
+	CveRules       []CveRules       `json:"cveRules,omitempty"`
+	Tags           []Tags           `json:"tags,omitempty"`
+	GraceDays      int              `json:"graceDays"`
+	OnlyFixed      bool             `json:"onlyFixed"`
 }
 
 func GetCi(c sdk.Client) (*Ci, error) {

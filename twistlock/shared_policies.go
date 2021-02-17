@@ -3,6 +3,7 @@ package twistlock
 import (
 	"time"
 
+	"github.com/Hivebrite/twistlock-go/sdk"
 	"github.com/Hivebrite/twistlock-go/sdk/policies"
 )
 
@@ -88,4 +89,32 @@ func expirationMapFromObject(expiration policies.Expiration) *map[string]interfa
 		schema["date"] = timeToString(expiration.Date)
 	}
 	return &schema
+}
+
+func parseCollections(collectionsList []interface{}) []sdk.Collection {
+	var collectionsSlice []sdk.Collection
+
+	for _, collection := range collectionsList {
+		c := collection.(map[string]interface{})
+		collectionsSlice = append(collectionsSlice,
+			sdk.Collection{
+				Name: c["name"].(string),
+			})
+	}
+
+	return collectionsSlice
+}
+
+func collectionSliceToInterface(collectionsSlice []sdk.Collection) []map[string]interface{} {
+	var collections []map[string]interface{}
+
+	for _, collection := range collectionsSlice {
+		collections = append(collections,
+			map[string]interface{}{
+				"name": collection.Name,
+			},
+		)
+	}
+
+	return collections
 }

@@ -44,7 +44,7 @@ func Get(c sdk.Client, subnetName string) (*Subnet, error) {
 }
 
 func Update(c sdk.Client, subnet *Subnet) error {
-	req, err := c.NewRequest("PUT", fmt.Sprintf("policies/firewall/app/network-list/%s", subnet.ID), subnet)
+	req, err := c.NewRequest("PUT", "policies/firewall/app/network-list", subnet)
 	if err != nil {
 		return err
 	}

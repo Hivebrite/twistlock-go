@@ -54,81 +54,8 @@ func resourceWaasContainer() *schema.Resource {
 							Type:        schema.TypeString,
 							Description: "",
 						},
-						"collections": {
-							Type:        schema.TypeSet,
-							Required:    true,
-							Description: "",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"hosts": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"images": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"labels": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"containers": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"namespaces": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"account_ids": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"clusters": {
-										Computed:    true,
-										Type:        schema.TypeList,
-										Description: "",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"name": {
-										Required:    true,
-										Type:        schema.TypeString,
-										Description: "Name of the collection",
-									},
-									"description": {
-										Computed:    true,
-										Type:        schema.TypeString,
-										Description: "",
-									},
-								},
-							},
-						},
+						"collections": collectionSchema(),
+
 						"applications_spec": {
 							Required:    true,
 							Type:        schema.TypeList,
@@ -202,7 +129,7 @@ func resourceWaasContainer() *schema.Resource {
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"methods": {
-																Required:    true,
+																Optional:    true,
 																Type:        schema.TypeList,
 																Description: "",
 																Elem: &schema.Schema{
@@ -219,7 +146,7 @@ func resourceWaasContainer() *schema.Resource {
 															},
 															"response_code_ranges": {
 																Type:        schema.TypeList,
-																Required:    true,
+																Optional:    true,
 																Description: "",
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
@@ -875,17 +802,7 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 			Name: rule["name"].(string),
 		}
 
-		var collectionsList []waas.Collection
-
-		for _, collection := range rule["collections"].(*schema.Set).List() {
-			c := collection.(map[string]interface{})
-			collectionsList = append(collectionsList,
-				waas.Collection{
-					Name: c["name"].(string),
-				})
-		}
-
-		ruleObject.Collections = collectionsList
+		ruleObject.Collections = parseCollections(rule["collections"].(*schema.Set).List())
 
 		for _, j := range applicationsSpec {
 			applicationSpec := j.(map[string]interface{})
@@ -994,19 +911,32 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 			var dosConditions []waas.MatchConditions
 
 			if len(dosConfig["match_conditions"].([]interface{})) > 0 {
-				for _, matchConditions := range dosConfig["match_conditions"].([]map[string]interface{}) {
+				for _, matchConditionsInterface := range dosConfig["match_conditions"].([]interface{}) {
+					matchConditions := matchConditionsInterface.(map[string]interface{})
 					var responseCodeRanges []waas.ResponseCodeRange
-					for _, codeRange := range matchConditions["response_code_ranges"].([]map[string]interface{}) {
+					for _, codeRangeInterface := range matchConditions["response_code_ranges"].([]interface{}) {
+						codeRange := codeRangeInterface.(map[string]interface{})
 						responseCodeRanges = append(responseCodeRanges,
 							waas.ResponseCodeRange{
 								Start: codeRange["start"].(int),
 								End:   codeRange["end"].(int),
 							})
 					}
+
+					var methods []string
+					for _, method := range matchConditions["methods"].([]interface{}) {
+						methods = append(methods, method.(string))
+					}
+
+					var fileTypes []string
+					for _, fileType := range matchConditions["file_types"].([]interface{}) {
+						fileTypes = append(fileTypes, fileType.(string))
+					}
+
 					dosConditions = append(dosConditions,
 						waas.MatchConditions{
-							Methods:            matchConditions["mmatchConditionsethods"].([]string),
-							FileTypes:          matchConditions["FileTypematchConditions"].([]string),
+							Methods:            methods,
+							FileTypes:          fileTypes,
 							ResponseCodeRanges: responseCodeRanges,
 						})
 				}
@@ -1178,7 +1108,10 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 				},
 				"bot_protection_spec": []map[string]interface{}{
 					{
-						"user_defined_bots": userDefinedBots,
+						"user_defined_bots":  userDefinedBots,
+						"session_validation": botProtectionSpec.SessionValidation,
+						"interstitial_page":  botProtectionSpec.InterstitialPage,
+
 						"known_bot_protections_spec": []map[string]interface{}{
 							{
 								"search_engine_crawlers": knownBotProtectionsSpec.SearchEngineCrawlers,
@@ -1269,15 +1202,7 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 			})
 		}
 
-		var collections []map[string]interface{}
-
-		for _, collection := range i.Collections {
-			collections = append(collections,
-				map[string]interface{}{
-					"name": collection.Name,
-				},
-			)
-		}
+		collections := collectionSliceToInterface(i.Collections)
 
 		waasRules = append(
 			waasRules,

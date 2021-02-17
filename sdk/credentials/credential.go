@@ -13,14 +13,11 @@ type ProviderCredential struct {
 	Type         string     `json:"type"`
 	AccountID    string     `json:"accountID"`
 	AccountGUID  string     `json:"accountGUID"`
+	External     bool       `json:"external"`
 	Secret       sdk.Secret `json:"secret"`
-	APIToken     APIToken   `json:"apiToken"`
+	APIToken     sdk.Secret `json:"apiToken"`
 	LastModified time.Time  `json:"lastModified"`
 	Owner        string     `json:"owner"`
-}
-
-type APIToken struct {
-	Encrypted string `json:"encrypted"`
 }
 
 func Index(c sdk.Client) ([]ProviderCredential, error) {
@@ -55,6 +52,7 @@ func Get(c sdk.Client, providerCredentialName string) (*ProviderCredential, erro
 
 func Set(c sdk.Client, spec *ProviderCredential) error {
 	req, err := c.NewRequest("POST", "credentials", spec)
+
 	if err != nil {
 		return err
 	}

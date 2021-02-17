@@ -47,7 +47,7 @@ func resourceRuntimeContainerPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Description: "",
 						},
-						"resources": policiesResourcesSchema([]string{"hosts", "images", "labels", "containers", "namespaces", "account_ids"}),
+						"collections": collectionSchema(),
 						"advanced_protection": {
 							Optional:    true,
 							Default:     false,
@@ -344,10 +344,9 @@ func parseRuntimeContainerPolicies(d *schema.ResourceData) *policies.Runtime {
 
 	for _, i := range rules {
 		rule := i.(map[string]interface{})
-		resources := rule["resources"].(*schema.Set).List()[0].(map[string]interface{})
-		processes := rule["processes"].(*schema.Set).List()[0].(map[string]interface{})
-		dns := rule["dns"].(*schema.Set).List()[0].(map[string]interface{})
-		filesystem := rule["filesystem"].(*schema.Set).List()[0].(map[string]interface{})
+		processes := fetchOptionalMapFromSetParam(rule, "processes")
+		dns := fetchOptionalMapFromSetParam(rule, "dns")
+		filesystem := fetchOptionalMapFromSetParam(rule, "filesystem")
 
 		var customRules []policies.CustomRules
 
@@ -367,16 +366,9 @@ func parseRuntimeContainerPolicies(d *schema.ResourceData) *policies.Runtime {
 			AdvancedProtection:       rule["advanced_protection"].(bool),
 			KubernetesEnforcement:    rule["kubernetes_enforcement"].(bool),
 			CloudMetadataEnforcement: rule["cloud_metadata_enforcement"].(bool),
-			Resources: policies.RuntimeResources{
-				Hosts:      cast.ToStringSlice(resources["hosts"]),
-				Images:     cast.ToStringSlice(resources["images"]),
-				Labels:     cast.ToStringSlice(resources["labels"]),
-				Containers: cast.ToStringSlice(resources["containers"]),
-				Namespaces: cast.ToStringSlice(resources["namespaces"]),
-				AccountIDs: cast.ToStringSlice(resources["account_ids"]),
-			},
-			CustomRules: customRules,
-			Network:     *networkFromRule(rule),
+			Collections:              parseCollections(rule["collections"].(*schema.Set).List()),
+			CustomRules:              customRules,
+			Network:                  *networkFromRule(rule),
 			Processes: policies.Processes{
 				Effect:               processes["effect"].(string),
 				Blacklist:            cast.ToStringSlice(processes["blacklist"]),
@@ -434,17 +426,8 @@ func saveRuntimeContainerPolicies(d *schema.ResourceData, policiesObject *polici
 				"advanced_protection":        i.AdvancedProtection,
 				"kubernetes_enforcement":     i.KubernetesEnforcement,
 				"cloud_metadata_enforcement": i.CloudMetadataEnforcement,
-				"resources": []map[string]interface{}{
-					{
-						"hosts":       i.Resources.Hosts,
-						"images":      i.Resources.Images,
-						"labels":      i.Resources.Labels,
-						"containers":  i.Resources.Containers,
-						"namespaces":  i.Resources.Namespaces,
-						"account_ids": i.Resources.AccountIDs,
-					},
-				},
-				"custom_rules": customRules,
+				"collections":                collectionSliceToInterface(i.Collections),
+				"custom_rules":               customRules,
 				"processes": []map[string]interface{}{
 					{
 						"effect":                 i.Processes.Effect,
