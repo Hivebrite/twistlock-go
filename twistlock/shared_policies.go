@@ -7,6 +7,15 @@ import (
 	"github.com/Hivebrite/twistlock-go/sdk/policies"
 )
 
+const (
+	Ban     = "ban"
+	Allow   = "allow"
+	Block   = "block"
+	Alert   = "alert"
+	Prevent = "prevent"
+	Disable = "disable"
+)
+
 func blockThresholdFromRule(rule map[string]interface{}) *policies.BlockThreshold {
 	blockThreshold := rule["block_threshold"].([]interface{})[0].(map[string]interface{})
 
