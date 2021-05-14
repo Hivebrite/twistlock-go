@@ -167,7 +167,7 @@ type Rule struct {
 	ExpandDetails    bool              `json:"expandDetails"`
 }
 
-func Index(c sdk.Client) (*Waas, error) {
+func GetContainerWaas(c sdk.Client) (*Waas, error) {
 	req, err := c.NewRequest("GET", "policies/firewall/app/container", nil)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func Index(c sdk.Client) (*Waas, error) {
 	return &waas, nil
 }
 
-func Set(c sdk.Client, waas *Waas) error {
+func SetContainerWaas(c sdk.Client, waas *Waas) error {
 	req, err := c.NewRequest("PUT", "policies/firewall/app/container", waas)
 	if err != nil {
 		return err
