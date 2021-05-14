@@ -45,7 +45,7 @@ func GetDefenderSettings(c sdk.Client) (*DefenderSettings, error) {
 }
 
 func UpdateDefenderSettings(c sdk.Client, settings *DefenderSettings) error {
-	req, err := c.NewRequest("PUT", "settings/defender", settings)
+	req, err := c.NewRequest("POST", "settings/defender", settings)
 	if err != nil {
 		return err
 	}

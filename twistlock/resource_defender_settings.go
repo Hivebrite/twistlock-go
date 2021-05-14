@@ -42,6 +42,12 @@ func resourceDefenderSettings() *schema.Resource {
 				Description: "",
 				Default:     1,
 			},
+			"listening_port": {
+				Optional:    true,
+				Type:        schema.TypeInt,
+				Description: "",
+				Default:     9998,
+			},
 		},
 	}
 }
@@ -52,6 +58,7 @@ func parseDefenderSettings(d *schema.ResourceData) *settings.DefenderSettings {
 		AutomaticUpgrade:            d.Get("automatic_upgrade").(bool),
 		DisconnectPeriodDays:        d.Get("disconnect_period_days").(int),
 		HostCustomComplianceEnabled: d.Get("host_custom_compliance_enabled").(bool),
+		ListeningPort:               d.Get("listening_port").(int),
 	}
 }
 
@@ -61,6 +68,7 @@ func saveDefenderSettings(d *schema.ResourceData, settings *settings.DefenderSet
 	d.Set("automatic_upgrade", settings.AutomaticUpgrade)
 	d.Set("disconnect_period_days", settings.DisconnectPeriodDays)
 	d.Set("host_custom_compliance_enabled", settings.HostCustomComplianceEnabled)
+	d.Set("listening_port", settings.ListeningPort)
 	return nil
 }
 
