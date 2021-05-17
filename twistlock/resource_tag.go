@@ -82,7 +82,7 @@ func parseTag(d *schema.ResourceData) *tag.Tag {
 }
 
 func saveTag(d *schema.ResourceData, objectTag *tag.Tag) error {
-	vulnTagTf := make([]interface{}, 0, len(objectTag.Vulns))
+	var vulnTag []map[string]interface{}
 
 	d.SetId(objectTag.Name)
 
@@ -99,8 +99,8 @@ func saveTag(d *schema.ResourceData, objectTag *tag.Tag) error {
 	}
 
 	for _, i := range objectTag.Vulns {
-		vulnTagTf = append(
-			vulnTagTf,
+		vulnTag = append(
+			vulnTag,
 			map[string]interface{}{
 				"id":           i.ID,
 				"package_name": i.PackageName,
@@ -109,7 +109,7 @@ func saveTag(d *schema.ResourceData, objectTag *tag.Tag) error {
 		)
 	}
 
-	err = d.Set("vulns", objectTag.Vulns)
+	err = d.Set("vulns", vulnTag)
 	if err != nil {
 		log.Printf("[ERROR] vuln setting caused by: %s", err)
 		return err
@@ -136,7 +136,7 @@ func createTag(d *schema.ResourceData, meta interface{}) error {
 
 func readTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	tag, err := tag.Get(*client, d.Get("name").(string))
+	tag, err := tag.Get(*client, d.Id())
 	if err != nil {
 		return err
 	}
