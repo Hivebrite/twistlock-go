@@ -68,7 +68,7 @@ func cveRuleObjectFromInterface(cveRule map[string]interface{}) *policies.CveRul
 		if expiration["enabled"] == nil {
 			cveRuleObject.Expiration.Enabled = false
 		} else {
-			cveRuleObject.Expiration.Enabled = expiration["disabled"].(bool)
+			cveRuleObject.Expiration.Enabled = expiration["enabled"].(bool)
 		}
 
 		if expiration["date"] != nil && expiration["enabled"] == true {
