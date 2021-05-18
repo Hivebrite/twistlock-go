@@ -1,9 +1,8 @@
 package settings
 
 import (
-	"encoding/json"
-
 	"github.com/Hivebrite/twistlock-go/sdk"
+	"github.com/mitchellh/mapstructure"
 )
 
 type DefenderSettings struct {
@@ -17,7 +16,6 @@ type DefenderSettings struct {
 
 func GetDefenderSettings(c sdk.Client) (*DefenderSettings, error) {
 	var unpacker interface{}
-	var marshaled []byte
 
 	req, err := c.NewRequest("GET", "settings/system", nil)
 	if err != nil {
@@ -31,12 +29,7 @@ func GetDefenderSettings(c sdk.Client) (*DefenderSettings, error) {
 		return nil, err
 	}
 
-	marshaled, err = json.Marshal(unpacker.(map[string]interface{})["defenderSettings"])
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(marshaled, &settings)
+	err = mapstructure.Decode(unpacker.(map[string]interface{})["defenderSettings"], &settings)
 	if err != nil {
 		return nil, err
 	}
