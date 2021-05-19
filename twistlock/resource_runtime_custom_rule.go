@@ -120,7 +120,6 @@ func saveRuntimeCustomRule(d *schema.ResourceData, customRuleRuntime *policies.C
 func createRuntimeCustomRule(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
 
-	log.Printf("parsing for : %s", parseRuntimeCustomRule(d))
 	err := policies.SetCustomRuleRuntime(*client, parseRuntimeCustomRule(d))
 	if err != nil {
 		return err

@@ -7,6 +7,15 @@ import (
 	"github.com/Hivebrite/twistlock-go/sdk/policies"
 )
 
+const (
+	Ban     = "ban"
+	Allow   = "allow"
+	Block   = "block"
+	Alert   = "alert"
+	Prevent = "prevent"
+	Disable = "disable"
+)
+
 func blockThresholdFromRule(rule map[string]interface{}) *policies.BlockThreshold {
 	blockThreshold := rule["block_threshold"].([]interface{})[0].(map[string]interface{})
 
@@ -59,7 +68,7 @@ func cveRuleObjectFromInterface(cveRule map[string]interface{}) *policies.CveRul
 		if expiration["enabled"] == nil {
 			cveRuleObject.Expiration.Enabled = false
 		} else {
-			cveRuleObject.Expiration.Enabled = expiration["disabled"].(bool)
+			cveRuleObject.Expiration.Enabled = expiration["enabled"].(bool)
 		}
 
 		if expiration["date"] != nil && expiration["enabled"] == true {

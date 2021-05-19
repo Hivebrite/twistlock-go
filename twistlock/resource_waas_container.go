@@ -10,13 +10,6 @@ import (
 	"github.com/spf13/cast"
 )
 
-const (
-	Ban     = "ban"
-	Alert   = "alert"
-	Prevent = "prevent"
-	Disable = "disable"
-)
-
 var waaf_effects = []string{Ban, Alert, Prevent, Disable}
 var http_effects = []string{Alert, Prevent}
 
@@ -1238,7 +1231,7 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 
 func createWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := waas.Set(*client, parseWaasContainer(d))
+	err := waas.SetContainerWaas(*client, parseWaasContainer(d))
 	if err != nil {
 		return err
 	}
@@ -1248,7 +1241,7 @@ func createWaasContainer(d *schema.ResourceData, meta interface{}) error {
 
 func readWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	waasRules, err := waas.Index(*client)
+	waasRules, err := waas.GetContainerWaas(*client)
 	if err != nil {
 		return err
 	}
@@ -1258,7 +1251,7 @@ func readWaasContainer(d *schema.ResourceData, meta interface{}) error {
 
 func deleteWaasContainer(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	err := waas.Set(*client, &waas.Waas{})
+	err := waas.SetContainerWaas(*client, &waas.Waas{})
 	if err != nil {
 		return err
 	}
@@ -1267,7 +1260,6 @@ func deleteWaasContainer(d *schema.ResourceData, meta interface{}) error {
 }
 
 func applicationSpecEffectsFromInterface(applicationSpecEffects map[string]interface{}) *waas.ApplicationSpecEffects {
-	log.Printf("[ERROR] rules caused by: %s", applicationSpecEffects)
 
 	applicationSpecObject := waas.ApplicationSpecEffects{}
 	if applicationSpecEffects["effect"] != nil {
