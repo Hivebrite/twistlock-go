@@ -84,6 +84,7 @@ func parseCiPolicies(d *schema.ResourceData) *policies.Ci {
 		ruleObject := policies.CiRules{
 			Name:        rule["name"].(string),
 			OnlyFixed:   rule["only_fixed"].(bool),
+			GraceDays:   rule["grace_days"].(int),
 			Collections: parseCollections(rule["collections"].(*schema.Set).List()),
 
 			Verbose:        rule["verbose"].(bool),

@@ -46,7 +46,7 @@ func tagObjectFromInterface(tag map[string]interface{}) *policies.Tags {
 		if expiration["enabled"] == nil {
 			tagObject.Expiration.Enabled = false
 		} else {
-			tagObject.Expiration.Enabled = expiration["disabled"].(bool)
+			tagObject.Expiration.Enabled = expiration["enabled"].(bool)
 		}
 
 		if expiration["date"] != nil && expiration["enabled"] == true {
@@ -79,14 +79,14 @@ func cveRuleObjectFromInterface(cveRule map[string]interface{}) *policies.CveRul
 	return &cveRuleObject
 }
 func stringToTime(stringifiedTime string) *time.Time {
-	layout := "2006-01-02T15:04:05.999Z00:00"
+	layout := "2006-01-02T15:04:05Z00:00"
 	expirationDate, _ := time.Parse(layout, stringifiedTime)
 
 	return &expirationDate
 }
 
 func timeToString(timeObject time.Time) string {
-	layout := "2006-01-02T15:04:05.999Z00:00"
+	layout := "2006-01-02T15:04:05Z00:00"
 	return timeObject.Format(layout)
 }
 

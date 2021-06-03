@@ -136,7 +136,7 @@ func createTag(d *schema.ResourceData, meta interface{}) error {
 
 func readTag(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*sdk.Client)
-	tag, err := tag.Get(*client, d.Id())
+	tag, err := tag.Get(*client, d.Get("name").(string))
 	if err != nil {
 		return err
 	}

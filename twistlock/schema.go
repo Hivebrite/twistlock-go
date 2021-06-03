@@ -91,7 +91,6 @@ func policiesTagsSchema() *schema.Schema {
 
 	return &schema.Schema{
 		Optional:    true,
-		Computed:    true,
 		Type:        schema.TypeSet,
 		Description: "Tag Exception",
 		Elem:        model,
@@ -125,7 +124,6 @@ func policiesCveRulesSchema() *schema.Schema {
 
 	return &schema.Schema{
 		Optional:    true,
-		Computed:    true,
 		Type:        schema.TypeSet,
 		Description: "CVE Exception",
 		Elem:        model,

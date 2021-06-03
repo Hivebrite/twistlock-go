@@ -12,6 +12,7 @@ type Tag struct {
 	Color string `json:"color"`
 	Vulns []Vuln `json:"vulns,omitempty"`
 }
+
 type Vuln struct {
 	ID          string `json:"id"`
 	PackageName string `json:"packageName"`
