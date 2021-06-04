@@ -23,7 +23,7 @@ const (
 )
 
 func GetCustomRuleRuntime(c sdk.Client, id int) (*CustomRuleRuntime, error) {
-	req, err := c.NewRequest("GET", "policies/runtime/custom-rules", nil)
+	req, err := c.NewRequest("GET", "custom-rules", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func GetCustomRuleRuntime(c sdk.Client, id int) (*CustomRuleRuntime, error) {
 }
 
 func SetCustomRuleRuntime(c sdk.Client, customRule *CustomRuleRuntime) error {
-	req, err := c.NewRequest("PUT", fmt.Sprintf("policies/runtime/custom-rules/%d", customRule.ID), customRule)
+	req, err := c.NewRequest("PUT", fmt.Sprintf("custom-rules/%d", customRule.ID), customRule)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func SetCustomRuleRuntime(c sdk.Client, customRule *CustomRuleRuntime) error {
 }
 
 func DeleteCustomRuleRuntime(c sdk.Client, customRule *CustomRuleRuntime) error {
-	req, err := c.NewRequest("DELETE", fmt.Sprintf("policies/runtime/custom-rules/%d", customRule.ID), nil)
+	req, err := c.NewRequest("DELETE", fmt.Sprintf("custom-rules/%d", customRule.ID), nil)
 	if err != nil {
 		return err
 	}
