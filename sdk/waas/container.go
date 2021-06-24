@@ -13,26 +13,81 @@ type Waas struct {
 	MaxPort int    `json:"maxPort"`
 }
 
-type Certificate struct {
-	Encrypted string `json:"encrypted"`
+type Rule struct {
+	Modified           time.Time         `json:"modified"`
+	Owner              string            `json:"owner"`
+	Name               string            `json:"name"`
+	PreviousName       string            `json:"previousName"`
+	Disabled           bool              `json:"disabled"`
+	Collections        []sdk.Collection  `json:"collections"`
+	ApplicationsSpec   []ApplicationSpec `json:"applicationsSpec"`
+	ReadTimeoutSeconds int               `json:"readTimeoutSeconds"`
+}
+
+type ApplicationSpec struct {
+	AppID                string                 `json:"appID"`
+	SessionCookieEnabled bool                   `json:"sessionCookieEnabled"`
+	SessionCookieBan     bool                   `json:"sessionCookieBan"`
+	CustomBlockResponse  CustomBlockResponse    `json:"customBlockResponse"`
+	BanDurationMinutes   int                    `json:"banDurationMinutes"`
+	Certificate          sdk.Secret             `json:"certificate"`
+	DosConfig            DosConfig              `json:"dosConfig"`
+	APISpec              APISpec                `json:"apiSpec"`
+	BotProtectionSpec    BotProtectionSpec      `json:"botProtectionSpec"`
+	NetworkControls      NetworkControls        `json:"networkControls"`
+	Body                 Body                   `json:"body"`
+	HeaderSpecs          []HeaderSpec           `json:"headerSpecs"`
+	IntelGathering       IntelGathering         `json:"intelGathering"`
+	MaliciousUpload      MaliciousUpload        `json:"maliciousUpload"`
+	CsrfEnabled          bool                   `json:"csrfEnabled"`
+	ClickjackingEnabled  bool                   `json:"clickjackingEnabled"`
+	Sqli                 ApplicationSpecEffects `json:"sqli"`
+	XSS                  ApplicationSpecEffects `json:"xss"`
+	AttackTools          ApplicationSpecEffects `json:"attackTools"`
+	Shellshock           ApplicationSpecEffects `json:"shellshock"`
+	MalformedReq         ApplicationSpecEffects `json:"malformedReq"`
+	Cmdi                 ApplicationSpecEffects `json:"cmdi"`
+	Lfi                  ApplicationSpecEffects `json:"lfi"`
+	CodeInjection        ApplicationSpecEffects `json:"codeInjection"`
+	RemoteHostForwarding RemoteHostForwarding   `json:"remoteHostForwarding"`
+}
+
+type CustomBlockResponse struct {
+}
+
+type DosConfig struct {
+	Enabled              bool              `json:"enabled"`
+	TrackSession         bool              `json:"trackSession"`
+	Alert                DosConfigRate     `json:"alert"`
+	Ban                  DosConfigRate     `json:"ban"`
+	MatchConditions      []MatchConditions `json:"matchConditions"`
+	ExcludedNetworkLists []string          `json:"excludedNetworkLists"`
+}
+
+type DosConfigRate struct {
+	Burst   int `json:"burst"`
+	Average int `json:"average"`
+}
+
+type MatchConditions struct {
+	Methods            []string            `json:"methods"`
+	FileTypes          []string            `json:"fileTypes"`
+	ResponseCodeRanges []ResponseCodeRange `json:"responseCodeRanges"`
 }
 
 type ResponseCodeRange struct {
 	Start int `json:"start"`
 	End   int `json:"end"`
 }
-type MatchConditions struct {
-	Methods            []string            `json:"methods,omitempty"`
-	ResponseCodeRanges []ResponseCodeRange `json:"responseCodeRanges,omitempty"`
-	FileTypes          []string            `json:"fileTypes,omitempty"`
+
+type APISpec struct {
+	Endpoints      []Endpoint `json:"endpoints"`
+	Paths          []Path     `json:"paths"`
+	Effect         string     `json:"effect"`
+	FallbackEffect string     `json:"fallbackEffect"`
+	SkipLearning   bool       `json:"skipLearning"`
 }
-type DosConfig struct {
-	TrackSession    bool              `json:"trackSession"`
-	Effect          string            `json:"effect"`
-	BurstRate       int               `json:"burstRate"`
-	AverageRate     int               `json:"averageRate"`
-	MatchConditions []MatchConditions `json:"matchConditions"`
-}
+
 type Endpoint struct {
 	Host         string `json:"host"`
 	BasePath     string `json:"basePath"`
@@ -41,12 +96,26 @@ type Endpoint struct {
 	TLS          bool   `json:"tls"`
 	HTTP2        bool   `json:"http2"`
 }
-type APISpec struct {
-	Endpoints      []Endpoint    `json:"endpoints"`
-	Effect         string        `json:"effect"`
-	FallbackEffect string        `json:"fallbackEffect"`
-	Paths          []interface{} `json:"paths"`
+
+type Path struct {
+	Path    string   `json:"path"`
+	Methods []Method `json:"methods"`
 }
+
+type Method struct {
+	Method string `json:"method"`
+}
+
+type BotProtectionSpec struct {
+	UserDefinedBots          []UserDefinedBot         `json:"userDefinedBots"`
+	KnownBotProtectionsSpec  KnownBotProtectionsSpec  `json:"knownBotProtectionsSpec"`
+	UnknownBotProtectionSpec UnknownBotProtectionSpec `json:"unknownBotProtectionSpec"`
+	SessionValidation        string                   `json:"sessionValidation"`
+	InterstitialPage         bool                     `json:"interstitialPage"`
+	JsInjectionSpec          JsInjectionSpec          `json:"jsInjectionSpec"`
+	ReCAPTCHASpec            ReCAPTCHASpec            `json:"reCAPTCHASpec"`
+}
+
 type UserDefinedBot struct {
 	Name         string   `json:"name"`
 	HeaderName   string   `json:"headerName"`
@@ -54,6 +123,7 @@ type UserDefinedBot struct {
 	Subnets      []string `json:"subnets"`
 	Effect       string   `json:"effect"`
 }
+
 type KnownBotProtectionsSpec struct {
 	SearchEngineCrawlers string `json:"searchEngineCrawlers"`
 	BusinessAnalytics    string `json:"businessAnalytics"`
@@ -65,10 +135,7 @@ type KnownBotProtectionsSpec struct {
 	CareerSearch         string `json:"careerSearch"`
 	MediaSearch          string `json:"mediaSearch"`
 }
-type RequestAnomalies struct {
-	Threshold int    `json:"threshold"`
-	Effect    string `json:"effect"`
-}
+
 type UnknownBotProtectionSpec struct {
 	Generic              string           `json:"generic"`
 	WebAutomationTools   string           `json:"webAutomationTools"`
@@ -79,28 +146,41 @@ type UnknownBotProtectionSpec struct {
 	BrowserImpersonation string           `json:"browserImpersonation"`
 	RequestAnomalies     RequestAnomalies `json:"requestAnomalies"`
 }
+
+type RequestAnomalies struct {
+	Threshold int    `json:"threshold"`
+	Effect    string `json:"effect"`
+}
+
 type JsInjectionSpec struct {
 	Enabled       bool   `json:"enabled"`
 	TimeoutEffect string `json:"timeoutEffect"`
 }
-type BotProtectionSpec struct {
-	UserDefinedBots           []UserDefinedBot         `json:"userDefinedBots"`
-	KnownBotProtectionsSpec   KnownBotProtectionsSpec  `json:"knownBotProtectionsSpec"`
-	UnknownBotProtectionsSpec UnknownBotProtectionSpec `json:"unknownBotProtectionSpec"`
-	SessionValidation         string                   `json:"sessionValidation"`
-	InterstitialPage          bool                     `json:"interstitialPage"`
-	JsInjectionSpec           JsInjectionSpec          `json:"jsInjectionSpec"`
+type ReCAPTCHASpec struct {
+	Enabled                bool       `json:"enabled"`
+	SiteKey                string     `json:"siteKey"`
+	SecretKey              sdk.Secret `json:"secretKey"`
+	Type                   string     `json:"type"`
+	AllSessions            bool       `json:"allSessions"`
+	SuccessExpirationHours int        `json:"successExpirationHours"`
 }
+
 type NetworkControls struct {
-	AdvancedProtectionEffect string   `json:"advancedProtectionEffect"`
-	DeniedSubnetsEffect      string   `json:"deniedSubnetsEffect"`
-	DeniedSubnets            []string `json:"deniedSubnets"`
-	AllowedSubnets           []string `json:"allowedSubnets"`
-	DeniedCountries          []string `json:"deniedCountries"`
-	AllowedCountries         []string `json:"allowedCountries"`
-	DeniedCountriesEffect    string   `json:"deniedCountriesEffect"`
-	AllowedCountriesEffect   string   `json:"allowedCountriesEffect"`
+	AdvancedProtectionEffect string                `json:"advancedProtectionEffect"`
+	Subnets                  NetworkControlsEffect `json:"subnets"`
+	Countries                NetworkControlsEffect `json:"countries"`
+	ExceptionSubnets         []string              `json:"exceptionSubnets"`
 }
+
+type NetworkControlsEffect struct {
+	Enabled        bool     `json:"enabled"`
+	AllowMode      bool     `json:"allowMode"`
+	FallbackEffect string   `json:"fallbackEffect"`
+	Allow          []string `json:"allow"`
+	Alert          []string `json:"alert"`
+	Prevent        []string `json:"prevent"`
+}
+
 type Body struct {
 	InspectionSizeBytes int  `json:"inspectionSizeBytes"`
 	Skip                bool `json:"skip"`
@@ -121,50 +201,18 @@ type MaliciousUpload struct {
 	AllowedFileTypes  []string `json:"allowedFileTypes"`
 	AllowedExtensions []string `json:"allowedExtensions"`
 }
-type ExceptionFields struct {
-	Location string `json:"location"`
-	Key      string `json:"key"`
-}
+
 type ApplicationSpecEffects struct {
 	Effect          string            `json:"effect"`
 	ExceptionFields []ExceptionFields `json:"exceptionFields"`
 }
+
+type ExceptionFields struct {
+	Location string `json:"location"`
+	Key      string `json:"key"`
+}
+
 type RemoteHostForwarding struct {
-}
-type ApplicationSpec struct {
-	BanDurationMinutes   int                    `json:"banDurationMinutes"`
-	Certificate          Certificate            `json:"certificate"`
-	DosConfig            DosConfig              `json:"dosConfig"`
-	APISpec              APISpec                `json:"apiSpec"`
-	BotProtectionSpec    BotProtectionSpec      `json:"botProtectionSpec"`
-	NetworkControls      NetworkControls        `json:"networkControls"`
-	Body                 Body                   `json:"body"`
-	HeaderSpecs          []HeaderSpec           `json:"headerSpecs"`
-	IntelGathering       IntelGathering         `json:"intelGathering"`
-	MaliciousUpload      MaliciousUpload        `json:"maliciousUpload"`
-	CsrfEnabled          bool                   `json:"csrfEnabled"`
-	ClickjackingEnabled  bool                   `json:"clickjackingEnabled"`
-	SessionCookieEnabled bool                   `json:"sessionCookieEnabled"`
-	SessionCookieBan     bool                   `json:"sessionCookieBan"`
-	Sqli                 ApplicationSpecEffects `json:"sqli"`
-	XSS                  ApplicationSpecEffects `json:"xss"`
-	AttackTools          ApplicationSpecEffects `json:"attackTools"`
-	Shellshock           ApplicationSpecEffects `json:"shellshock"`
-	MalformedReq         ApplicationSpecEffects `json:"malformedReq"`
-	Cmdi                 ApplicationSpecEffects `json:"cmdi"`
-	Lfi                  ApplicationSpecEffects `json:"lfi"`
-	CodeInjection        ApplicationSpecEffects `json:"codeInjection"`
-	RemoteHostForwarding RemoteHostForwarding   `json:"remoteHostForwarding"`
-	Selected             bool                   `json:"selected"`
-}
-type Rule struct {
-	Modified         time.Time         `json:"modified"`
-	Owner            string            `json:"owner"`
-	Name             string            `json:"name"`
-	PreviousName     string            `json:"previousName"`
-	Collections      []sdk.Collection  `json:"collections"`
-	ApplicationsSpec []ApplicationSpec `json:"applicationsSpec"`
-	ExpandDetails    bool              `json:"expandDetails"`
 }
 
 func GetContainerWaas(c sdk.Client) (*Waas, error) {
@@ -174,6 +222,7 @@ func GetContainerWaas(c sdk.Client) (*Waas, error) {
 	}
 	var waas Waas
 	_, err = c.Do(req, &waas)
+
 	if err != nil {
 		return nil, err
 	}

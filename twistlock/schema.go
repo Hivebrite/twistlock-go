@@ -274,6 +274,89 @@ func collectionSchema() *schema.Schema {
 	}
 }
 
+func collectionDosConfigEffect() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Computed: true,
+		MinItems: 1,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"burst": {
+					Required: true,
+					Type:     schema.TypeInt,
+				},
+				"average": {
+					Required: true,
+					Type:     schema.TypeInt,
+				},
+			},
+		},
+	}
+}
+
+func networkControlsEffect() *schema.Schema {
+	return &schema.Schema{
+
+		Required:    true,
+		Type:        schema.TypeSet,
+		Description: "",
+		MinItems:    1,
+		MaxItems:    1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"enabled": {
+					Optional:    true,
+					Type:        schema.TypeBool,
+					Description: "",
+					Default:     false,
+				},
+				"allow_mode": {
+					Optional:    true,
+					Type:        schema.TypeBool,
+					Description: "",
+					Default:     true,
+				},
+				"fallback_effect": {
+					Optional:    true,
+					Type:        schema.TypeString,
+					Description: "",
+					Default:     Alert,
+					ValidateFunc: validation.StringInSlice(
+						http_effects,
+						false,
+					),
+				},
+				"allow": {
+					Optional:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"alert": {
+					Optional:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"prevent": {
+					Optional:    true,
+					Type:        schema.TypeList,
+					Description: "",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
 func listOfPortSchema() *schema.Schema {
 	var model = &schema.Resource{
 		Schema: map[string]*schema.Schema{

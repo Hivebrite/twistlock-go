@@ -66,6 +66,21 @@ func resourceRuntimeContainerPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Description: "",
 						},
+						"wild_fire_analysis": {
+							Optional:    true,
+							Type:        schema.TypeString,
+							Description: "",
+							Default:     policies.Disable,
+							ValidateFunc: validation.StringInSlice(
+								[]string{
+									policies.EffectBlock,
+									policies.EffectAlert,
+									policies.EffectDisable,
+									policies.EffectPrevent,
+								},
+								false,
+							),
+						},
 						"processes": {
 							Type:        schema.TypeSet,
 							Required:    true,
@@ -365,6 +380,7 @@ func parseRuntimeContainerPolicies(d *schema.ResourceData) *policies.Runtime {
 			Notes:                    rule["notes"].(string),
 			AdvancedProtection:       rule["advanced_protection"].(bool),
 			KubernetesEnforcement:    rule["kubernetes_enforcement"].(bool),
+			WildFireAnalysis:         rule["wild_fire_analysis"].(string),
 			CloudMetadataEnforcement: rule["cloud_metadata_enforcement"].(bool),
 			Collections:              parseCollections(rule["collections"].(*schema.Set).List()),
 			CustomRules:              customRules,
@@ -425,6 +441,7 @@ func saveRuntimeContainerPolicies(d *schema.ResourceData, policiesObject *polici
 				"notes":                      i.Notes,
 				"advanced_protection":        i.AdvancedProtection,
 				"kubernetes_enforcement":     i.KubernetesEnforcement,
+				"wild_fire_analysis":         i.WildFireAnalysis,
 				"cloud_metadata_enforcement": i.CloudMetadataEnforcement,
 				"collections":                collectionSliceToInterface(i.Collections),
 				"custom_rules":               customRules,
