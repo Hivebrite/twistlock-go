@@ -97,8 +97,8 @@ func resourceCollection() *schema.Resource {
 	}
 }
 
-func parseCollection(d *schema.ResourceData) *collections.Collection {
-	collection := collections.Collection{
+func parseCollection(d *schema.ResourceData) *sdk.Collection {
+	collection := sdk.Collection{
 		Name:        d.Get("name").(string),
 		Description: d.Get("description").(string),
 		Hosts:       cast.ToStringSlice(d.Get("hosts")),
@@ -114,7 +114,7 @@ func parseCollection(d *schema.ResourceData) *collections.Collection {
 	return &collection
 }
 
-func saveCollection(d *schema.ResourceData, objectCollection *collections.Collection) error {
+func saveCollection(d *schema.ResourceData, objectCollection *sdk.Collection) error {
 
 	d.SetId(objectCollection.Name)
 

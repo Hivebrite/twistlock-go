@@ -48,7 +48,12 @@ func resourceWaasContainer() *schema.Resource {
 							Description: "",
 						},
 						"collections": collectionSchema(),
-
+						"read_timeout_seconds": {
+							Optional:    true,
+							Default:     5,
+							Type:        schema.TypeInt,
+							Description: "",
+						},
 						"applications_spec": {
 							Required:    true,
 							Type:        schema.TypeList,
@@ -60,6 +65,11 @@ func resourceWaasContainer() *schema.Resource {
 										Type:        schema.TypeInt,
 										Description: "",
 										Default:     5,
+									},
+									"app_id": {
+										Required:    true,
+										Type:        schema.TypeString,
+										Description: "",
 									},
 									"certificate": {
 										Type:        schema.TypeSet,
@@ -86,33 +96,25 @@ func resourceWaasContainer() *schema.Resource {
 										MaxItems:    1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"effect": {
+												"enabled": {
 													Optional:    true,
-													Type:        schema.TypeString,
+													Type:        schema.TypeBool,
 													Description: "",
-													Default:     Disable,
-													ValidateFunc: validation.StringInSlice(
-														[]string{
-															Alert,
-															Ban,
-															Disable,
-														},
-														false,
-													),
+													Default:     false,
+												},
+												"alert": collectionDosConfigEffect(),
+												"ban":   collectionDosConfigEffect(),
+												"excluded_network_lists": {
+													Optional:    true,
+													Type:        schema.TypeList,
+													Description: "",
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
 												},
 												"track_session": {
 													Optional:    true,
 													Type:        schema.TypeBool,
-													Description: "",
-												},
-												"burst_rate": {
-													Optional:    true,
-													Type:        schema.TypeInt,
-													Description: "",
-												},
-												"average_rate": {
-													Optional:    true,
-													Type:        schema.TypeInt,
 													Description: "",
 												},
 												"match_conditions": {
@@ -210,9 +212,58 @@ func resourceWaasContainer() *schema.Resource {
 														},
 													},
 												},
-												// effect,
-												// fallback_effect,
-												// paths,
+												"skip_learning": {
+													Optional:    true,
+													Default:     false,
+													Type:        schema.TypeBool,
+													Description: "",
+												},
+												"fallback_effect": {
+													Optional:    true,
+													Default:     Disable,
+													Type:        schema.TypeString,
+													Description: "",
+													ValidateFunc: validation.StringInSlice(
+														waaf_effects,
+														false),
+												},
+												"effect": {
+													Optional:    true,
+													Default:     Disable,
+													Type:        schema.TypeString,
+													Description: "",
+													ValidateFunc: validation.StringInSlice(
+														waaf_effects,
+														false),
+												},
+												"paths": {
+													Type:        schema.TypeSet,
+													Optional:    true,
+													Description: "",
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"path": {
+																Required:    true,
+																Type:        schema.TypeString,
+																Description: "",
+															},
+															"methods": {
+																Required:    true,
+																Type:        schema.TypeList,
+																Description: "",
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"method": {
+																			Optional:    true,
+																			Type:        schema.TypeString,
+																			Description: "",
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -527,6 +578,63 @@ func resourceWaasContainer() *schema.Resource {
 														},
 													},
 												},
+												"recaptcha_spec": {
+													Type:        schema.TypeSet,
+													Optional:    true,
+													Description: "",
+													MinItems:    1,
+													MaxItems:    1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"enabled": {
+																Optional:    true,
+																Default:     false,
+																Type:        schema.TypeBool,
+																Description: "",
+															},
+															"site_key": {
+																Optional:    true,
+																Type:        schema.TypeString,
+																Default:     Disable,
+																Description: "",
+															},
+															"type": {
+																Optional:    true,
+																Type:        schema.TypeString,
+																Default:     Disable,
+																Description: "",
+															},
+															"all_sessions": {
+																Optional:    true,
+																Default:     false,
+																Type:        schema.TypeBool,
+																Description: "",
+															},
+															"success_expiration_hours": {
+																Optional:    true,
+																Default:     24,
+																Type:        schema.TypeInt,
+																Description: "",
+															},
+															"secret_key": {
+																Type:        schema.TypeSet,
+																Optional:    true,
+																Computed:    true,
+																Description: "recaptcha key",
+																MinItems:    1,
+																MaxItems:    1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"encrypted": {
+																			Required: true,
+																			Type:     schema.TypeString,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -542,68 +650,16 @@ func resourceWaasContainer() *schema.Resource {
 													Optional:    true,
 													Type:        schema.TypeString,
 													Description: "",
-													Default:     "alert",
+													Default:     Alert,
 													ValidateFunc: validation.StringInSlice(
 														waaf_effects,
 														false,
 													),
 												},
-												"denied_subnets_effect": {
+												"subnets":   networkControlsEffect(),
+												"countries": networkControlsEffect(),
+												"exception_subnets": {
 													Optional:    true,
-													Type:        schema.TypeString,
-													Description: "",
-													Default:     "alert",
-													ValidateFunc: validation.StringInSlice(
-														http_effects,
-														false,
-													),
-												},
-												"denied_countries_effect": {
-													Optional:    true,
-													Type:        schema.TypeString,
-													Description: "",
-													Default:     "alert",
-													ValidateFunc: validation.StringInSlice(
-														http_effects,
-														false,
-													),
-												},
-												"allowed_countries_effect": {
-													Optional:    true,
-													Type:        schema.TypeString,
-													Description: "",
-													Default:     "alert",
-													ValidateFunc: validation.StringInSlice(
-														http_effects,
-														false,
-													),
-												},
-												"denied_subnets": {
-													Required:    true,
-													Type:        schema.TypeList,
-													Description: "",
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-													},
-												},
-												"allowed_subnets": {
-													Required:    true,
-													Type:        schema.TypeList,
-													Description: "",
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-													},
-												},
-												"denied_countries": {
-													Required:    true,
-													Type:        schema.TypeList,
-													Description: "",
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-													},
-												},
-												"allowed_countries": {
-													Required:    true,
 													Type:        schema.TypeList,
 													Description: "",
 													Elem: &schema.Schema{
@@ -792,7 +848,8 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 		applicationsSpec := rule["applications_spec"].([]interface{})
 
 		ruleObject := waas.Rule{
-			Name: rule["name"].(string),
+			Name:               rule["name"].(string),
+			ReadTimeoutSeconds: rule["read_timeout_seconds"].(int),
 		}
 
 		ruleObject.Collections = parseCollections(rule["collections"].(*schema.Set).List())
@@ -859,7 +916,10 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 
 			unknownBotProtection := fetchOptionalMapFromSetParam(botProtectionSpec, "unknown_bot_protections_spec")
 			requestAnomalies := fetchOptionalMapFromSetParam(unknownBotProtection, "request_anomalies")
-			botProtectionObject.UnknownBotProtectionsSpec = waas.UnknownBotProtectionSpec{
+			recaptchaSpec := fetchOptionalMapFromSetParam(botProtectionSpec, "recaptcha_spec")
+			recaptchaSecret := fetchOptionalMapFromSetParam(recaptchaSpec, "secret_key")
+
+			botProtectionObject.UnknownBotProtectionSpec = waas.UnknownBotProtectionSpec{
 				Generic:              unknownBotProtection["generic"].(string),
 				WebAutomationTools:   unknownBotProtection["web_automation_tools"].(string),
 				WebScrapers:          unknownBotProtection["web_scrapers"].(string),
@@ -870,8 +930,7 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 				RequestAnomalies: waas.RequestAnomalies{
 					Threshold: requestAnomalies["threshold"].(int),
 					Effect:    requestAnomalies["effect"].(string),
-				},
-			}
+				}}
 
 			var userDefinedBots []waas.UserDefinedBot
 			for _, userDefinedBot := range botProtectionSpec["user_defined_bots"].([]interface{}) {
@@ -887,6 +946,23 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 			}
 			botProtectionObject.UserDefinedBots = userDefinedBots
 
+			botProtectionObject.ReCAPTCHASpec = waas.ReCAPTCHASpec{
+				Enabled:                recaptchaSpec["enabled"].(bool),
+				SiteKey:                recaptchaSpec["site_key"].(string),
+				Type:                   recaptchaSpec["type"].(string),
+				AllSessions:            recaptchaSpec["all_sessions"].(bool),
+				SuccessExpirationHours: recaptchaSpec["success_expiration_hours"].(int),
+				SecretKey: sdk.Secret{
+					Encrypted: func() string {
+						if recaptchaSecret["encrypted"] == nil {
+							return ""
+						}
+
+						return recaptchaSecret["encrypted"].(string)
+					}(),
+				},
+			}
+
 			var endpoints []waas.Endpoint
 			for _, endpoint := range apiSpec["endpoints"].(*schema.Set).List() {
 				e := endpoint.(map[string]interface{})
@@ -901,44 +977,30 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 					})
 			}
 
-			var dosConditions []waas.MatchConditions
+			var paths []waas.Path
+			for _, path := range apiSpec["paths"].(*schema.Set).List() {
+				p := path.(map[string]interface{})
 
-			if len(dosConfig["match_conditions"].([]interface{})) > 0 {
-				for _, matchConditionsInterface := range dosConfig["match_conditions"].([]interface{}) {
-					matchConditions := matchConditionsInterface.(map[string]interface{})
-					var responseCodeRanges []waas.ResponseCodeRange
-					for _, codeRangeInterface := range matchConditions["response_code_ranges"].([]interface{}) {
-						codeRange := codeRangeInterface.(map[string]interface{})
-						responseCodeRanges = append(responseCodeRanges,
-							waas.ResponseCodeRange{
-								Start: codeRange["start"].(int),
-								End:   codeRange["end"].(int),
-							})
-					}
-
-					var methods []string
-					for _, method := range matchConditions["methods"].([]interface{}) {
-						methods = append(methods, method.(string))
-					}
-
-					var fileTypes []string
-					for _, fileType := range matchConditions["file_types"].([]interface{}) {
-						fileTypes = append(fileTypes, fileType.(string))
-					}
-
-					dosConditions = append(dosConditions,
-						waas.MatchConditions{
-							Methods:            methods,
-							FileTypes:          fileTypes,
-							ResponseCodeRanges: responseCodeRanges,
+				var methods []waas.Method
+				for _, method := range p["methods"].([]interface{}) {
+					m := method.(map[string]interface{})
+					methods = append(methods,
+						waas.Method{
+							Method: m["method"].(string),
 						})
 				}
+				paths = append(paths,
+					waas.Path{
+						Path:    p["path"].(string),
+						Methods: methods,
+					})
 			}
 
 			ruleObject.ApplicationsSpec = append(
 				ruleObject.ApplicationsSpec,
 				waas.ApplicationSpec{
-					Certificate: waas.Certificate{
+					AppID: applicationSpec["app_id"].(string),
+					Certificate: sdk.Secret{
 						Encrypted: func() string {
 							if certificate["encrypted"] == nil {
 								return ""
@@ -947,21 +1009,18 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 							return certificate["encrypted"].(string)
 						}(),
 					},
-
 					APISpec: waas.APISpec{
 						Endpoints:      endpoints,
-						Effect:         "disable",
-						FallbackEffect: "disable",
+						Paths:          paths,
+						Effect:         apiSpec["effect"].(string),
+						FallbackEffect: apiSpec["fallback_effect"].(string),
+						SkipLearning:   apiSpec["skip_learning"].(bool),
 					},
 					NetworkControls: waas.NetworkControls{
-						AllowedSubnets:           cast.ToStringSlice(networkControls["allowed_subnets"]),
 						AdvancedProtectionEffect: networkControls["advanced_protection_effect"].(string),
-						DeniedSubnetsEffect:      networkControls["denied_subnets_effect"].(string),
-						DeniedSubnets:            cast.ToStringSlice(networkControls["denied_subnets"]),
-						DeniedCountriesEffect:    networkControls["denied_countries_effect"].(string),
-						DeniedCountries:          cast.ToStringSlice(networkControls["denied_countries"]),
-						AllowedCountriesEffect:   networkControls["allowed_countries_effect"].(string),
-						AllowedCountries:         cast.ToStringSlice(networkControls["allowed_countries"]),
+						ExceptionSubnets:         cast.ToStringSlice(networkControls["exception_subnets"]),
+						Subnets:                  parseNetworkControlsEffect(fetchOptionalMapFromSetParam(networkControls, "subnets")),
+						Countries:                parseNetworkControlsEffect(fetchOptionalMapFromSetParam(networkControls, "countries")),
 					},
 					Sqli:          *applicationSpecEffectsFromInterface(sqli),
 					XSS:           *applicationSpecEffectsFromInterface(xss),
@@ -991,11 +1050,12 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 					SessionCookieBan:     applicationSpec["session_cookie_ban"].(bool),
 					HeaderSpecs:          headersSpecs,
 					DosConfig: waas.DosConfig{
-						Effect:          dosConfig["effect"].(string),
-						BurstRate:       dosConfig["burst_rate"].(int),
-						TrackSession:    dosConfig["track_session"].(bool),
-						AverageRate:     dosConfig["average_rate"].(int),
-						MatchConditions: dosConditions,
+						Enabled:              dosConfig["enabled"].(bool),
+						TrackSession:         dosConfig["track_session"].(bool),
+						Alert:                parseDosConfigRate(fetchOptionalMapFromSetParam(dosConfig, "alert")),
+						Ban:                  parseDosConfigRate(fetchOptionalMapFromSetParam(dosConfig, "ban")),
+						ExcludedNetworkLists: cast.ToStringSlice(dosConfig["excluded_network_lists"]),
+						MatchConditions:      parseDosConditions(dosConfig["match_conditions"].([]interface{})),
 					},
 					BotProtectionSpec: botProtectionObject,
 					// remoteHostForwarding
@@ -1011,6 +1071,64 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 	}
 
 	return &waasSpec
+}
+
+func parseDosConditions(dosConfig []interface{}) []waas.MatchConditions {
+
+	var dosConditions []waas.MatchConditions
+
+	if len(dosConfig) > 0 {
+		for _, matchConditionsInterface := range dosConfig {
+			matchConditions := matchConditionsInterface.(map[string]interface{})
+			var responseCodeRanges []waas.ResponseCodeRange
+			for _, codeRangeInterface := range matchConditions["response_code_ranges"].([]interface{}) {
+				codeRange := codeRangeInterface.(map[string]interface{})
+				responseCodeRanges = append(responseCodeRanges,
+					waas.ResponseCodeRange{
+						Start: codeRange["start"].(int),
+						End:   codeRange["end"].(int),
+					})
+			}
+
+			var methods = cast.ToStringSlice(matchConditions["methods"])
+			var fileTypes = cast.ToStringSlice(matchConditions["file_types"])
+
+			dosConditions = append(dosConditions,
+				waas.MatchConditions{
+					Methods:            methods,
+					FileTypes:          fileTypes,
+					ResponseCodeRanges: responseCodeRanges,
+				})
+		}
+	}
+
+	return dosConditions
+}
+
+func parseDosConfigRate(dosConfigRate map[string]interface{}) waas.DosConfigRate {
+	configRate := waas.DosConfigRate{}
+
+	if dosConfigRate["burst"] != nil {
+		configRate.Burst = dosConfigRate["burst"].(int)
+	}
+
+	if dosConfigRate["average"] != nil {
+		configRate.Average = dosConfigRate["average"].(int)
+	}
+
+	return configRate
+}
+
+func parseNetworkControlsEffect(networkControlsEffect map[string]interface{}) waas.NetworkControlsEffect {
+
+	return waas.NetworkControlsEffect{
+		Enabled:        networkControlsEffect["enabled"].(bool),
+		AllowMode:      networkControlsEffect["allow_mode"].(bool),
+		FallbackEffect: networkControlsEffect["fallback_effect"].(string),
+		Allow:          cast.ToStringSlice(networkControlsEffect["allow"]),
+		Prevent:        cast.ToStringSlice(networkControlsEffect["prevent"]),
+		Alert:          cast.ToStringSlice(networkControlsEffect["alert"]),
+	}
 }
 
 func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
@@ -1077,9 +1195,28 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 			}
 
 			knownBotProtectionsSpec := botProtectionSpec.KnownBotProtectionsSpec
-			unknownBotProtectionsSpec := botProtectionSpec.UnknownBotProtectionsSpec
+			unknownBotProtectionSpec := botProtectionSpec.UnknownBotProtectionSpec
+			recaptchaSpec := botProtectionSpec.ReCAPTCHASpec
 			jsInjectionSpec := botProtectionSpec.JsInjectionSpec
+
+			var paths []map[string]interface{}
+			for _, path := range applicationSpec.APISpec.Paths {
+				var methods []map[string]interface{}
+
+				for _, method := range path.Methods {
+					methods = append(methods, map[string]interface{}{
+						"method": method.Method,
+					})
+				}
+
+				paths = append(paths, map[string]interface{}{
+					"path":    path.Path,
+					"methods": methods,
+				})
+			}
+
 			applicationsSpec = append(applicationsSpec, map[string]interface{}{
+				"app_id": applicationSpec.AppID,
 				"certificate": []map[string]interface{}{
 					{
 						"encrypted": applicationSpec.Certificate.Encrypted,
@@ -1087,16 +1224,31 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 				},
 				"dos_config": []map[string]interface{}{
 					{
-						"track_session":    applicationSpec.DosConfig.TrackSession,
-						"effect":           applicationSpec.DosConfig.Effect,
-						"burst_rate":       applicationSpec.DosConfig.BurstRate,
-						"average_rate":     applicationSpec.DosConfig.AverageRate,
-						"match_conditions": dosConditions,
+						"enabled":       applicationSpec.DosConfig.Enabled,
+						"track_session": applicationSpec.DosConfig.TrackSession,
+						"alert": []map[string]interface{}{
+							{
+								"burst":   applicationSpec.DosConfig.Alert.Burst,
+								"average": applicationSpec.DosConfig.Alert.Average,
+							},
+						},
+						"ban": []map[string]interface{}{
+							{
+								"burst":   applicationSpec.DosConfig.Alert.Burst,
+								"average": applicationSpec.DosConfig.Alert.Average,
+							},
+						},
+						"excluded_network_lists": applicationSpec.DosConfig.ExcludedNetworkLists,
+						"match_conditions":       dosConditions,
 					},
 				},
 				"api_spec": []map[string]interface{}{
 					{
-						"endpoints": endpoints,
+						"endpoints":       endpoints,
+						"paths":           paths,
+						"effect":          applicationSpec.APISpec.Effect,
+						"fallback_effect": applicationSpec.APISpec.FallbackEffect,
+						"skip_learning":   applicationSpec.APISpec.SkipLearning,
 					},
 				},
 				"bot_protection_spec": []map[string]interface{}{
@@ -1104,7 +1256,6 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 						"user_defined_bots":  userDefinedBots,
 						"session_validation": botProtectionSpec.SessionValidation,
 						"interstitial_page":  botProtectionSpec.InterstitialPage,
-
 						"known_bot_protections_spec": []map[string]interface{}{
 							{
 								"search_engine_crawlers": knownBotProtectionsSpec.SearchEngineCrawlers,
@@ -1120,17 +1271,17 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 						},
 						"unknown_bot_protections_spec": []map[string]interface{}{
 							{
-								"generic":               unknownBotProtectionsSpec.Generic,
-								"web_automation_tools":  unknownBotProtectionsSpec.WebAutomationTools,
-								"web_scrapers":          unknownBotProtectionsSpec.WebScrapers,
-								"api_libraries":         unknownBotProtectionsSpec.APILibraries,
-								"http_libraries":        unknownBotProtectionsSpec.HTTPLibraries,
-								"bot_impersonation":     unknownBotProtectionsSpec.BotImpersonation,
-								"browser_impersonation": unknownBotProtectionsSpec.BrowserImpersonation,
+								"generic":               unknownBotProtectionSpec.Generic,
+								"web_automation_tools":  unknownBotProtectionSpec.WebAutomationTools,
+								"web_scrapers":          unknownBotProtectionSpec.WebScrapers,
+								"api_libraries":         unknownBotProtectionSpec.APILibraries,
+								"http_libraries":        unknownBotProtectionSpec.HTTPLibraries,
+								"bot_impersonation":     unknownBotProtectionSpec.BotImpersonation,
+								"browser_impersonation": unknownBotProtectionSpec.BrowserImpersonation,
 								"request_anomalies": []map[string]interface{}{
 									{
-										"threshold": unknownBotProtectionsSpec.RequestAnomalies.Threshold,
-										"effect":    unknownBotProtectionsSpec.RequestAnomalies.Effect,
+										"threshold": unknownBotProtectionSpec.RequestAnomalies.Threshold,
+										"effect":    unknownBotProtectionSpec.RequestAnomalies.Effect,
 									},
 								},
 							},
@@ -1141,18 +1292,28 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 								"timeout_effect": jsInjectionSpec.TimeoutEffect,
 							},
 						},
+						"recaptcha_spec": []map[string]interface{}{
+							{
+								"enabled":                  recaptchaSpec.Enabled,
+								"site_key":                 recaptchaSpec.SiteKey,
+								"type":                     recaptchaSpec.Type,
+								"all_sessions":             recaptchaSpec.AllSessions,
+								"success_expiration_hours": recaptchaSpec.SuccessExpirationHours,
+								"secret_key": []map[string]interface{}{
+									{
+										"encrypted": recaptchaSpec.SecretKey.Encrypted,
+									},
+								},
+							},
+						},
 					},
 				},
 				"network_controls": []map[string]interface{}{
 					{
 						"advanced_protection_effect": applicationSpec.NetworkControls.AdvancedProtectionEffect,
-						"denied_subnets_effect":      applicationSpec.NetworkControls.DeniedSubnetsEffect,
-						"denied_countries_effect":    applicationSpec.NetworkControls.DeniedCountriesEffect,
-						"allowed_countries_effect":   applicationSpec.NetworkControls.AllowedCountriesEffect,
-						"denied_subnets":             applicationSpec.NetworkControls.DeniedSubnets,
-						"allowed_subnets":            applicationSpec.NetworkControls.AllowedSubnets,
-						"denied_countries":           applicationSpec.NetworkControls.DeniedCountries,
-						"allowed_countries":          applicationSpec.NetworkControls.AllowedCountries,
+						"exception_subnets":          applicationSpec.NetworkControls.ExceptionSubnets,
+						"subnets":                    *networkControlsEffectFromObject(applicationSpec.NetworkControls.Subnets),
+						"countries":                  *networkControlsEffectFromObject(applicationSpec.NetworkControls.Countries),
 					},
 				},
 				"body": []map[string]interface{}{
@@ -1200,9 +1361,10 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 		waasRules = append(
 			waasRules,
 			map[string]interface{}{
-				"name":              i.Name,
-				"collections":       collections,
-				"applications_spec": applicationsSpec,
+				"name":                 i.Name,
+				"read_timeout_seconds": i.ReadTimeoutSeconds,
+				"collections":          collections,
+				"applications_spec":    applicationsSpec,
 			})
 	}
 
@@ -1299,6 +1461,18 @@ func applicationSpecEffectsFromObject(appSpec waas.ApplicationSpecEffects) *[]ma
 		{
 			"effect":           appSpec.Effect,
 			"exception_fields": exceptionFields,
+		},
+	}
+}
+func networkControlsEffectFromObject(ncEffects waas.NetworkControlsEffect) *[]map[string]interface{} {
+	return &[]map[string]interface{}{
+		{
+			"enabled":         ncEffects.Enabled,
+			"allow_mode":      ncEffects.AllowMode,
+			"fallback_effect": ncEffects.FallbackEffect,
+			"allow":           ncEffects.Allow,
+			"alert":           ncEffects.Alert,
+			"prevent":         ncEffects.Prevent,
 		},
 	}
 }

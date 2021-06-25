@@ -70,6 +70,7 @@ type RuntimeRules struct {
 	KubernetesEnforcement    bool             `json:"kubernetesEnforcement"`
 	CloudMetadataEnforcement bool             `json:"cloudMetadataEnforcement"`
 	CustomRules              []CustomRules    `json:"customRules"`
+	WildFireAnalysis         string           `json:"wildFireAnalysis"`
 }
 
 const (

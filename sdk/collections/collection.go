@@ -7,29 +7,13 @@ import (
 	"github.com/Hivebrite/twistlock-go/sdk"
 )
 
-type Collection struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Containers  []string `json:"containers"`
-	Hosts       []string `json:"hosts"`
-	Images      []string `json:"images"`
-	Labels      []string `json:"labels"`
-	AppIDs      []string `json:"appIDs"`
-	Functions   []string `json:"functions"`
-	Namespaces  []string `json:"namespaces"`
-	AccountIDs  []string `json:"accountIDs"`
-	CodeRepos   []string `json:"codeRepos"`
-	Clusters    []string `json:"clusters"`
-	Color       string   `json:"color"`
-}
-
-func Index(c sdk.Client) ([]Collection, error) {
+func Index(c sdk.Client) ([]sdk.Collection, error) {
 	req, err := c.NewRequest("GET", "collections", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	collections := []Collection{}
+	collections := []sdk.Collection{}
 	_, err = c.Do(req, &collections)
 	if err != nil {
 		return nil, err
@@ -38,7 +22,7 @@ func Index(c sdk.Client) ([]Collection, error) {
 	return collections, nil
 }
 
-func Get(c sdk.Client, collectionName string) (*Collection, error) {
+func Get(c sdk.Client, collectionName string) (*sdk.Collection, error) {
 	resp, err := Index(c)
 	if err != nil {
 		return nil, err
@@ -53,7 +37,7 @@ func Get(c sdk.Client, collectionName string) (*Collection, error) {
 	return nil, fmt.Errorf("collection: %s not found", collectionName)
 }
 
-func Update(c sdk.Client, collection *Collection) error {
+func Update(c sdk.Client, collection *sdk.Collection) error {
 	req, err := c.NewRequest("PUT", fmt.Sprintf("collections/%s", collection.Name), collection)
 	if err != nil {
 		return err
@@ -66,7 +50,7 @@ func Update(c sdk.Client, collection *Collection) error {
 	return nil
 }
 
-func Create(c sdk.Client, collection *Collection) error {
+func Create(c sdk.Client, collection *sdk.Collection) error {
 	req, err := c.NewRequest("POST", "collections", collection)
 	if err != nil {
 		return err
