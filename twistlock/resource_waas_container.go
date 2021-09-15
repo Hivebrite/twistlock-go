@@ -218,6 +218,12 @@ func resourceWaasContainer() *schema.Resource {
 													Type:        schema.TypeBool,
 													Description: "",
 												},
+												"description": {
+													Optional:    true,
+													Default:     "",
+													Type:        schema.TypeString,
+													Description: "",
+												},
 												"fallback_effect": {
 													Optional:    true,
 													Default:     Disable,
@@ -517,7 +523,7 @@ func resourceWaasContainer() *schema.Resource {
 																			Description: "",
 																			ValidateFunc: validation.IntInSlice(
 																				[]int{
-																					3, 6, 9,
+																					0, 3, 6, 9,
 																				},
 																			),
 																		},
@@ -1014,6 +1020,7 @@ func parseWaasContainer(d *schema.ResourceData) *waas.Waas {
 						Paths:          paths,
 						Effect:         apiSpec["effect"].(string),
 						FallbackEffect: apiSpec["fallback_effect"].(string),
+						Description:    apiSpec["description"].(string),
 						SkipLearning:   apiSpec["skip_learning"].(bool),
 					},
 					NetworkControls: waas.NetworkControls{
@@ -1248,6 +1255,7 @@ func saveWaasContainer(d *schema.ResourceData, waasObject *waas.Waas) error {
 						"paths":           paths,
 						"effect":          applicationSpec.APISpec.Effect,
 						"fallback_effect": applicationSpec.APISpec.FallbackEffect,
+						"description":     applicationSpec.APISpec.Description,
 						"skip_learning":   applicationSpec.APISpec.SkipLearning,
 					},
 				},
