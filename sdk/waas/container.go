@@ -85,6 +85,7 @@ type APISpec struct {
 	Paths          []Path     `json:"paths"`
 	Effect         string     `json:"effect"`
 	FallbackEffect string     `json:"fallbackEffect"`
+	Description    string     `json:"description"`
 	SkipLearning   bool       `json:"skipLearning"`
 }
 
