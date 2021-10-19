@@ -1507,6 +1507,7 @@ func applicationSpecEffectsSchema() *schema.Schema {
 							Description: "",
 							ValidateFunc: validation.StringInSlice(
 								[]string{
+									"path",
 									"query",
 									"body",
 									"cookie",
