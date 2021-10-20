@@ -1443,7 +1443,7 @@ func applicationSpecEffectsFromInterface(applicationSpecEffects map[string]inter
 			field := exceptionField.(map[string]interface{})
 			exceptionFields = append(exceptionFields,
 				waas.ExceptionFields{
-					Location: field["effect"].(string),
+					Location: field["location"].(string),
 					Key:      field["key"].(string),
 				})
 		}
@@ -1507,6 +1507,7 @@ func applicationSpecEffectsSchema() *schema.Schema {
 							Description: "",
 							ValidateFunc: validation.StringInSlice(
 								[]string{
+									"path",
 									"query",
 									"body",
 									"cookie",
